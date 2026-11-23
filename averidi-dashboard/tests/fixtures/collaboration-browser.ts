@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import type {Page} from 'playwright';
+export async function verifyCollaboration(page:Page,origin:string,workspaceId:string,checkAccessibility:(page:Page,phase:string)=>Promise<void>){
+ await page.setViewportSize({width:1280,height:900});
+ await page.goto(origin+'/dashboard/app/organizations');
+ await page.getByLabel('Organization name',{exact:true}).fill('Browser organization');await page.getByRole('button',{name:'Create organization',exact:true}).click();await page.getByRole('heading',{name:'Browser organization',exact:true}).waitFor();
+ await page.getByLabel('New organization name',{exact:true}).fill('Updated organization');await page.getByRole('button',{name:'Rename organization',exact:true}).click();await page.getByRole('heading',{name:'Updated organization',exact:true}).waitFor();
+ const org=page.getByRole('region',{name:'Selected organization',exact:true});
+ await page.getByLabel('Workspace to link',{exact:true}).selectOption(workspaceId);await page.getByRole('button',{name:'Link workspace',exact:true}).click();await org.getByRole('button',{name:/^Unlink /}).waitFor();
+ await page.getByRole('button',{name:'Create member invitation',exact:true}).click();const code=org.locator('code');await code.waitFor();assert.match(await code.innerText(),/^[A-Za-z0-9_-]{43}$/);
+ await page.getByRole('button',{name:/^Revoke organization invitation /}).click();await page.getByText('Invitation revoked.',{exact:true}).waitFor();await checkAccessibility(page,'organization-management');
+ await page.setViewportSize({width:390,height:844});await checkAccessibility(page,'organization-mobile');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Organization page overflows mobile viewport');
+ await org.getByRole('button',{name:/^Unlink /}).click();await page.getByText('Workspace unlinked.',{exact:true}).waitFor();page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Delete organization',exact:true}).click();await page.getByText('Organization deleted.',{exact:true}).waitFor();
+ await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/dashboard/app/workspaces/'+workspaceId+'/teams');
+ await page.getByLabel('New team name',{exact:true}).fill('Browser team');await page.getByRole('button',{name:'Create team',exact:true}).click();await page.getByRole('heading',{name:'Browser team',exact:true}).waitFor();
+ await page.getByRole('checkbox').first().check();await page.getByRole('button',{name:'Save team members',exact:true}).click();await page.getByText('Team updated.',{exact:true}).waitFor();await page.reload();await page.getByRole('checkbox').first().waitFor();assert.equal(await page.getByRole('checkbox').first().isChecked(),true);
+ await page.getByLabel('Team name',{exact:true}).fill('Updated browser team');await page.getByRole('button',{name:'Rename team',exact:true}).click();await page.getByRole('heading',{name:'Updated browser team',exact:true}).waitFor();await checkAccessibility(page,'team-management');page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Delete team',exact:true}).click();await page.getByText('No teams created yet.',{exact:true}).waitFor();
+ await page.goto(origin+'/dashboard/app/settings');await page.getByLabel('New display name',{exact:true}).fill('Browser account');await page.getByRole('button',{name:'Save display name',exact:true}).click();await page.getByText('Display name: Browser account',{exact:true}).waitFor();await page.reload();await page.getByText('Display name: Browser account',{exact:true}).waitFor();await page.getByText('This session',{exact:false}).waitFor();await checkAccessibility(page,'account-profile-sessions');await page.getByRole('button',{name:'Save display name',exact:true}).click();await page.getByText('Display name: Not set',{exact:true}).waitFor();
+ console.log('PASS: organization create/rename/link/invite/revoke/unlink/delete; persistent team membership/rename/delete; own profile/session screen.');
+}

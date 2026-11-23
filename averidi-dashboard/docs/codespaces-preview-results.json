@@ -1,0 +1,217 @@
+{
+  "testedFeatureBase": "8c4f7d8719323c9c1b1558491a7333b4c3c05c72",
+  "scope": "Codespaces preview changes combined with the inspected marketing baseline; later concurrent inventory changes are preserved but not certified by this run",
+  "verification": {
+    "status": "PASSED",
+    "source": {
+      "algorithm": "sha256",
+      "sha256": "b3de7ea25b409fc4934c2afdd8f2fb10d8d59543d684ce99b98fffd05a078f75",
+      "files": 318
+    },
+    "startedAt": "2026-10-23T04:06:23.016Z",
+    "finishedAt": "2026-10-23T04:07:52.208Z",
+    "stages": [
+      {
+        "id": "history",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:23.078Z",
+        "log": "history.log",
+        "elapsedMs": 121,
+        "exitCode": 0
+      },
+      {
+        "id": "isolation",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:23.200Z",
+        "log": "isolation.log",
+        "elapsedMs": 69,
+        "exitCode": 0
+      },
+      {
+        "id": "contracts",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:23.269Z",
+        "log": "contracts.log",
+        "elapsedMs": 300,
+        "exitCode": 0
+      },
+      {
+        "id": "schema",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:23.571Z",
+        "log": "schema.log",
+        "elapsedMs": 849,
+        "exitCode": 0
+      },
+      {
+        "id": "generate",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:24.421Z",
+        "log": "generate.log",
+        "elapsedMs": 1379,
+        "exitCode": 0
+      },
+      {
+        "id": "migrations",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:25.802Z",
+        "log": "migrations.log",
+        "elapsedMs": 1033,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-database",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:26.837Z",
+        "log": "owner-database.log",
+        "elapsedMs": 321,
+        "exitCode": 0
+      },
+      {
+        "id": "upgrade",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:27.159Z",
+        "log": "upgrade.log",
+        "elapsedMs": 3605,
+        "exitCode": 0
+      },
+      {
+        "id": "runtime-role",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:30.766Z",
+        "log": "runtime-role.log",
+        "elapsedMs": 316,
+        "exitCode": 0
+      },
+      {
+        "id": "runtime-grants",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:31.083Z",
+        "log": "runtime-grants.log",
+        "elapsedMs": 358,
+        "exitCode": 0
+      },
+      {
+        "id": "runtime-database",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:31.443Z",
+        "log": "runtime-database.log",
+        "elapsedMs": 288,
+        "exitCode": 0
+      },
+      {
+        "id": "regression",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:06:31.732Z",
+        "log": "regression.log",
+        "elapsedMs": 37850,
+        "exitCode": 0,
+        "tests": {
+          "tests": 179,
+          "pass": 179,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "id": "drift",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:09.583Z",
+        "log": "drift.log",
+        "elapsedMs": 740,
+        "exitCode": 0
+      },
+      {
+        "id": "storage-probe",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:10.324Z",
+        "log": "storage-probe.log",
+        "elapsedMs": 199,
+        "exitCode": 0
+      },
+      {
+        "id": "database-recovery",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:10.523Z",
+        "log": "database-recovery.log",
+        "elapsedMs": 2035,
+        "exitCode": 0
+      },
+      {
+        "id": "clean-build-output",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:12.562Z",
+        "log": "clean-build-output.log",
+        "elapsedMs": 105,
+        "exitCode": 0
+      },
+      {
+        "id": "route-types",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:12.668Z",
+        "log": "route-types.log",
+        "elapsedMs": 280,
+        "exitCode": 0
+      },
+      {
+        "id": "typescript",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:12.948Z",
+        "log": "typescript.log",
+        "elapsedMs": 2810,
+        "exitCode": 0
+      },
+      {
+        "id": "build",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:15.759Z",
+        "log": "build.log",
+        "elapsedMs": 12312,
+        "exitCode": 0
+      },
+      {
+        "id": "authentication-browser",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:28.073Z",
+        "log": "authentication-browser.log",
+        "elapsedMs": 7003,
+        "exitCode": 0,
+        "tests": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "id": "bi-browser",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T04:07:35.099Z",
+        "log": "bi-browser.log",
+        "elapsedMs": 17059,
+        "exitCode": 0,
+        "accessibilityScans": 3
+      }
+    ]
+  },
+  "nativeCodespacesLauncher": {
+    "status": "PASSED",
+    "checks": {
+      "nativeSetup": true,
+      "repeatSetupPreservesSecrets": true,
+      "privatePermissions": true,
+      "migrations": 17,
+      "restrictedRole": true,
+      "liveDevelopmentWebWorkerReadiness": true,
+      "codespacesDevelopmentAssets": true,
+      "foreignDevelopmentOriginRejected": true,
+      "gracefulShutdown": true
+    },
+    "dockerIdentityExecution": "NOT_EXECUTED"
+  },
+  "dockerIdentityAndGithubForwarding": "Awaiting execution in the user Codespace"
+}

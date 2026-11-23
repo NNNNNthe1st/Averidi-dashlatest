@@ -1,0 +1,44 @@
+name: Build independent Dashboard release artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Reviewed release version (letters, numbers, dot, dash or underscore)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  artifact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install locked builder dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build committed source in a clean environment without runtime credentials
+        run: node scripts/releases/build.mjs "$RUNNER_TEMP/dashboard-release" "$RELEASE_VERSION"
+      - name: Preserve permissions and relative links in an archive
+        run: |
+          tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/dashboard-release.tar.gz" dashboard-release
+          sha256sum "$RUNNER_TEMP/dashboard-release.tar.gz" > "$RUNNER_TEMP/dashboard-release-archive.sha256"
+          node --input-type=module -e 'import {readFileSync,writeFileSync} from "node:fs";import {createHash} from "node:crypto";const raw=readFileSync(process.env.RUNNER_TEMP+"/dashboard-release/release.json");writeFileSync(process.env.RUNNER_TEMP+"/dashboard-release-digest.txt",createHash("sha256").update(raw).digest("hex")+"\n");'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: independent-dashboard-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/dashboard-release.tar.gz
+            ${{ runner.temp }}/dashboard-release-archive.sha256
+            ${{ runner.temp }}/dashboard-release-digest.txt
+          if-no-files-found: error
+          retention-days: 14

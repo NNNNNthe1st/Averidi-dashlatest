@@ -1,0 +1,45 @@
+name: Dashboard dependency security
+on:
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+      - scripts/security/**
+      - .github/workflows/dependency-security.yml
+  push:
+    branches: [main, feature/independent-dashboard]
+    paths:
+      - package.json
+      - package-lock.json
+      - scripts/security/**
+      - .github/workflows/dependency-security.yml
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: dependency-security-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Scan all locked runtime and development dependencies
+        run: npm run security:audit
+      - name: Retain actionable security findings even when the gate fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-dependency-security-${{ github.run_id }}
+          path: .local/security/dependency-audit.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

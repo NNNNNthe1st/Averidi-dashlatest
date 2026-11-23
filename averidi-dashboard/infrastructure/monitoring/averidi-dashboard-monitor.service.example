@@ -1,0 +1,25 @@
+[Unit]
+Description=Independent Dashboard operational check and alert delivery
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Local 0700 storage requires the Dashboard storage owner's OS identity.
+# A separate monitor identity can be used with dedicated object storage credentials.
+User=dashboard
+Group=dashboard
+WorkingDirectory=/opt/averidi-dashboard/current
+EnvironmentFile=/etc/averidi-dashboard/monitor.env
+ExecStart=/usr/bin/node scripts/monitor-dashboard.mjs
+TimeoutStartSec=90
+UMask=0077
+StateDirectory=averidi-dashboard-monitor
+StateDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# Configure the exact independent storage path for the real I/O probe.
+# ReadWritePaths=/var/lib/averidi-dashboard-storage
+# Review the executable path, environment, role grants and storage permissions before installing.

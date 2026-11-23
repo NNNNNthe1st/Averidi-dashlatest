@@ -1,0 +1,1408 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DASHBOARD_DATABASE_URL")
+}
+
+// New independent schema. Not connected to the website User/Service/Subscription models.
+model DashboardUser {
+  erasureRequestedAt DateTime?
+  displayName String?
+  email String? @unique
+  passwordHash String?
+  emailVerifiedAt DateTime?
+  credentialTokens DashboardCredentialToken[]
+  id                 String                         @id @default(cuid())
+  externalSubject    String                         @unique
+  createdAt          DateTime                       @default(now())
+  memberships        DashboardMembership[]
+  sessions           DashboardSession[]
+  invitations        DashboardWorkspaceInvitation[]
+  externalIdentities DashboardExternalIdentity[]
+
+  organizationMemberships DashboardOrganizationMember[]
+
+  organizationInvitations DashboardOrganizationInvitation[]
+
+  permissionGrants DashboardPermissionGrant[]
+
+  savedViews DashboardSavedView[]
+
+  accessGrants DashboardAccessGrant[]
+
+  supportCases DashboardSupportCase[]
+  connectorOAuthAttempts DashboardConnectorOAuthAttempt[]
+}
+
+model DashboardWorkspace {
+  trialStartedAt DateTime?
+  sourceMonitoringPolicies DashboardSourceMonitoringPolicy[]
+  sourceIncidents DashboardSourceIncident[]
+  queryCacheRecords DashboardQueryCache[]
+  presentation       Json?
+  presentationRevision Int @default(0)
+  erasureRequestId String?
+  teams DashboardTeam[]
+  billingBinding DashboardBillingBinding?
+
+  id             String                         @id @default(cuid())
+  name           String
+  createdAt      DateTime                       @default(now())
+  memberships    DashboardMembership[]
+  datasets       DashboardDataset[]
+  sources        DashboardDataSource[]
+  storagePolicy DashboardStoragePolicy?
+  storageDeletions DashboardStorageDeletion[]
+  views          DashboardView[]
+  metrics        DashboardMetricDefinition[]
+  jobs           DashboardJob[]
+  invitations    DashboardWorkspaceInvitation[]
+  subscription   DashboardSubscription?
+  schedules      DashboardJobSchedule[]
+  organizationId String?
+  organization   DashboardOrganization?         @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  workspaceRoleRecords DashboardWorkspaceRole[]
+
+  permissionGrantRecords DashboardPermissionGrant[]
+
+  datasetSchemaRecords DashboardDatasetSchema[]
+
+  datasetSnapshotRecords DashboardDatasetSnapshot[]
+
+  qualityCheckRecords DashboardQualityCheck[]
+
+  qualityIssueRecords DashboardQualityIssue[]
+
+  businessEntityRecords DashboardBusinessEntity[]
+
+  dataRelationshipRecords DashboardDataRelationship[]
+
+  metricComponentRecords DashboardMetricComponent[]
+
+  metricResultRecords DashboardMetricResult[]
+
+  pageRecords DashboardPage[]
+
+  widgetRecords DashboardWidget[]
+
+  savedViewRecords DashboardSavedView[]
+
+  targetRecords DashboardTarget[]
+
+  alertRuleRecords DashboardAlertRule[]
+
+  alertEventRecords DashboardAlertEvent[]
+
+  refreshExecutionRecords DashboardRefreshExecution[]
+
+  reportDefinitionRecords DashboardReportDefinition[]
+
+  reportScheduleRecords DashboardReportSchedule[]
+
+  reportExportRecords DashboardReportExport[]
+
+  reportDeliveryRecords DashboardReportDelivery[]
+
+  shareRecords DashboardShare[]
+
+  accessGrantRecords DashboardAccessGrant[]
+
+  auditEventRecords DashboardAuditEvent[]
+
+  billingCustomerRecords DashboardBillingCustomer[]
+
+  checkoutAttempts DashboardCheckoutAttempt[]
+
+  invoiceRecords DashboardInvoice[]
+
+  connectorConfigurationRecords DashboardConnectorConfiguration[]
+
+  credentialReferenceRecords DashboardCredentialReference[]
+
+  webhookRecordRecords DashboardWebhookRecord[]
+
+  connectorOAuthAttempts DashboardConnectorOAuthAttempt[]
+
+  operationalEventRecords DashboardOperationalEvent[]
+
+  supportCaseRecords DashboardSupportCase[]
+  analyses           DashboardAnalysisRun[]
+
+  @@index([organizationId])
+}
+
+model DashboardMembership {
+  customPermissionGrants DashboardPermissionGrant[]
+  viewAccessGrants DashboardAccessGrant[]
+  teamMemberships DashboardTeamMember[]
+  id          String             @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        String
+  user        DashboardUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId, role])
+  @@unique([id, workspaceId])
+  @@unique([id, userId, workspaceId])
+}
+
+enum DashboardDatasetStatus {
+  INGESTING
+  READY
+  FAILED
+  ARCHIVED
+}
+
+model DashboardDataSource {
+  monitoringPolicies DashboardSourceMonitoringPolicy[]
+  monitoringIncidents DashboardSourceIncident[]
+  id                      String                      @id @default(cuid())
+  workspaceId             String
+  kind                    String
+  name                    String
+  status                  String                      @default("DISCONNECTED")
+  lastCheckedAt           DateTime?
+  lastSyncedAt            DateTime?
+  lastErrorCode           String?
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  workspace               DashboardWorkspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  datasets                DashboardDataset[]
+  refreshExecutionRecords DashboardRefreshExecution[]
+
+  connectorConfigurationRecords DashboardConnectorConfiguration[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, status])
+}
+
+model DashboardDataset {
+  webhookReceipts DashboardWebhookRecord[]
+  id              String                    @id @default(cuid())
+  workspaceId     String
+  name            String
+  activeVersionId String?
+  sourceId        String?
+  source          DashboardDataSource?      @relation(fields: [sourceId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  status          DashboardDatasetStatus    @default(INGESTING)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  workspace       DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  versions        DashboardDatasetVersion[]
+  views           DashboardView[]
+  activeVersion   DashboardDatasetVersion?  @relation("ActiveDatasetVersion", fields: [activeVersionId, id], references: [id, datasetId], onDelete: NoAction, onUpdate: NoAction)
+
+  datasetSchemaRecords DashboardDatasetSchema[]
+
+  datasetSnapshotRecords DashboardDatasetSnapshot[]
+
+  qualityCheckRecords DashboardQualityCheck[]
+
+  businessEntityRecords DashboardBusinessEntity[]
+
+  metricResultRecords DashboardMetricResult[]
+  analyses            DashboardAnalysisRun[]
+  monitoringTargetRecords DashboardTarget[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, status])
+  @@index([activeVersionId])
+}
+
+model DashboardDatasetVersion {
+  webhookReceipts DashboardWebhookRecord[]
+  id                  String           @id @default(cuid())
+  datasetId           String
+  version             Int
+  status              String           @default("PENDING")
+  sourceFormat        String           @default("UNKNOWN")
+  sourceWorksheetName String?
+  importMode          String           @default("REPLACE")
+  recordIdentityField String?
+  importSummary       Json?
+  storageKey          String
+  fileSize            BigInt
+  rowCount            Int?
+  profile             Json?
+  semantics           Json?
+  profiledAt          DateTime?
+  checksum            String
+  createdAt           DateTime         @default(now())
+  dataset             DashboardDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  activeFor DashboardDataset[] @relation("ActiveDatasetVersion")
+
+  datasetSchemaRecords DashboardDatasetSchema[]
+
+  datasetSnapshotRecords DashboardDatasetSnapshot[]
+
+  qualityCheckRecords DashboardQualityCheck[]
+
+  metricResultRecords DashboardMetricResult[]
+  semanticRevision    Int                     @default(0)
+  analyses            DashboardAnalysisRun[]
+
+  @@unique([datasetId, version])
+  @@unique([id, datasetId])
+}
+
+enum DashboardViewAccessMode {
+  WORKSPACE
+  RESTRICTED
+}
+enum DashboardShareKind {
+  LINK
+  DIRECT
+}
+
+model DashboardView {
+  queryCacheRecords DashboardQueryCache[]
+  reportSourceExports DashboardReportExport[] @relation("ReportSourceView")
+  accessMode DashboardViewAccessMode @default(WORKSPACE)
+  id          String             @id @default(cuid())
+  workspaceId String
+  datasetId   String
+  name        String
+  definition  Json
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  workspace   DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  dataset     DashboardDataset   @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
+
+  pageRecords DashboardPage[]
+
+  savedViewRecords DashboardSavedView[]
+
+  reportDefinitionRecords DashboardReportDefinition[]
+
+  shareRecords DashboardShare[]
+  analysisId   String?
+  analysis     DashboardAnalysisRun? @relation(fields: [analysisId, datasetId, workspaceId], references: [id, datasetId, workspaceId], onDelete: NoAction)
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, updatedAt])
+  @@index([analysisId])
+}
+
+model DashboardMetricDefinition {
+  id          String             @id @default(cuid())
+  workspaceId String
+  key         String
+  name        String
+  definition  Json
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  workspace   DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  metricComponentRecords DashboardMetricComponent[]
+
+  metricResultRecords DashboardMetricResult[]
+
+  widgetRecords DashboardWidget[]
+
+  targetRecords DashboardTarget[]
+
+  alertRuleRecords DashboardAlertRule[]
+
+  @@unique([workspaceId, key])
+  @@unique([id, workspaceId])
+}
+
+model DashboardJob {
+  webhookReceipts DashboardWebhookRecord[]
+  id                String             @id @default(cuid())
+  workspaceId       String
+  kind              String
+  status            String             @default("QUEUED")
+  payload           Json
+  attempts          Int                @default(0)
+  leaseToken        String?
+  leaseExpiresAt    DateTime?
+  availableAt       DateTime           @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  lastError         String?
+  idempotencyKey    String?
+  progress          Int                @default(0)
+  result            Json?
+  reconciledAt      DateTime?
+  effectCommittedAt DateTime?
+  cancelRequestedAt DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  workspace         DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  refreshExecutionRecords DashboardRefreshExecution[]
+
+  @@unique([workspaceId, idempotencyKey])
+  @@unique([id, workspaceId])
+  @@index([status, availableAt])
+  @@index([status, leaseExpiresAt])
+  @@index([status, createdAt])
+  @@index([workspaceId, createdAt])
+  @@index([status, reconciledAt])
+}
+
+model DashboardSession {
+  id        String        @id
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime      @default(now())
+  user      DashboardUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model DashboardWorkspaceInvitation {
+  id           String             @id @default(cuid())
+  workspaceId  String
+  invitedById  String
+  tokenHash    String             @unique
+  role         String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  acceptedAt   DateTime?
+  acceptedById String?
+  createdAt    DateTime           @default(now())
+  workspace    DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy    DashboardUser      @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, expiresAt])
+}
+
+model DashboardSubscription {
+  id               String                @id @default(cuid())
+  workspaceId      String                @unique
+  planCode         String
+  accessSuspended  Boolean               @default(false)
+  status           String                @default("INACTIVE")
+  currentPeriodEnd DateTime?
+  updatedAt        DateTime              @updatedAt
+  workspace        DashboardWorkspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  billingPlanId    String?
+  billingPlan      DashboardBillingPlan? @relation(fields: [billingPlanId], references: [id], onDelete: Restrict)
+
+  invoiceRecords DashboardInvoice[]
+
+  @@unique([id, workspaceId])
+}
+
+model DashboardAdminAudit {
+  id           String   @id @default(cuid())
+  actorIssuer  String
+  actorSubject String
+  action       String
+  workspaceId  String?
+  details      String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([workspaceId, createdAt])
+}
+
+model DashboardLoginAttempt {
+  id         String    @id
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
+model DashboardWorkerHeartbeat {
+  capabilities String[] @default([])
+  version      Int      @default(1)
+  startedAt    DateTime @default(now())
+  id           String   @id
+  seenAt       DateTime @default(now())
+  activeJobId  String?
+  stopping     Boolean  @default(false)
+}
+
+model DashboardJobSchedule {
+  id              String             @id @default(cuid())
+  workspaceId     String
+  kind            String
+  payload         Json
+  workspace       DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  intervalSeconds Int
+  nextRunAt       DateTime
+  enabled         Boolean            @default(true)
+
+  refreshExecutionRecords DashboardRefreshExecution[]
+  lastErrorCode           String?
+
+  @@unique([id, workspaceId])
+  @@index([enabled, nextRunAt])
+}
+
+// Dashboard-owned persistence contracts for architecture section 11.
+// These models do not activate integrations or implement their feature workflows.
+
+model DashboardExternalIdentity {
+  id        String        @id @default(cuid())
+  userId    String
+  user      DashboardUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issuer    String
+  subject   String
+  createdAt DateTime      @default(now())
+
+  @@unique([issuer, subject])
+  @@index([userId])
+}
+
+model DashboardOrganization {
+  erasureRequestId String?
+  auditEvents DashboardOrganizationAuditEvent[]
+  id                            String                            @id @default(cuid())
+  name                          String
+  updatedAt                     DateTime                          @updatedAt
+  createdAt                     DateTime                          @default(now())
+  workspaces                    DashboardWorkspace[]
+  organizationMemberRecords     DashboardOrganizationMember[]
+  organizationInvitationRecords DashboardOrganizationInvitation[]
+}
+
+model DashboardOrganizationMember {
+  id             String                @id @default(cuid())
+  organizationId String
+  organization   DashboardOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           String
+  createdAt      DateTime              @default(now())
+  userId         String
+  user           DashboardUser         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model DashboardOrganizationInvitation {
+  id             String                @id @default(cuid())
+  organizationId String
+  organization   DashboardOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           String
+  createdAt      DateTime              @default(now())
+  tokenHash      String                @unique
+  invitedById    String
+  invitedBy      DashboardUser         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+
+  @@index([organizationId, expiresAt])
+}
+
+model DashboardWorkspaceRole {
+  updatedAt DateTime @default(now()) @updatedAt
+  id                     String                     @id @default(cuid())
+  workspaceId            String
+  workspace              DashboardWorkspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  key                    String
+  name                   String
+  permissions            String[]
+  createdAt              DateTime                   @default(now())
+  permissionGrantRecords DashboardPermissionGrant[]
+
+  @@unique([workspaceId, key])
+  @@unique([id, workspaceId])
+}
+
+model DashboardPermissionGrant {
+  membershipId String?
+  membership DashboardMembership? @relation(fields:[membershipId,userId,workspaceId],references:[id,userId,workspaceId],onDelete:Cascade)
+  id          String                 @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        DashboardUser          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime               @default(now())
+  roleId      String
+  role        DashboardWorkspaceRole @relation(fields: [roleId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([workspaceId, userId, roleId])
+  @@unique([id, workspaceId])
+  @@index([roleId])
+}
+
+model DashboardDatasetSchema {
+  id          String                  @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  columns     Json
+  createdAt   DateTime                @default(now())
+  datasetId   String
+  dataset     DashboardDataset        @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  versionId   String
+  version     DashboardDatasetVersion @relation(fields: [versionId, datasetId], references: [id, datasetId], onDelete: Cascade)
+
+  @@unique([versionId])
+  @@unique([id, workspaceId])
+  @@index([datasetId])
+  @@index([workspaceId, datasetId])
+}
+
+model DashboardDatasetSnapshot {
+  purgedAt DateTime?
+  id          String                  @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  storageKey  String
+  checksum    String
+  fileSize    BigInt
+  rowCount    Int
+  createdAt   DateTime                @default(now())
+  datasetId   String
+  dataset     DashboardDataset        @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  versionId   String
+  version     DashboardDatasetVersion @relation(fields: [versionId, datasetId], references: [id, datasetId], onDelete: Cascade)
+
+  @@unique([workspaceId, storageKey])
+  @@unique([id, workspaceId])
+  @@index([datasetId])
+  @@index([workspaceId, datasetId])
+}
+
+model DashboardQualityCheck {
+  id                  String                  @id @default(cuid())
+  workspaceId         String
+  workspace           DashboardWorkspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  kind                String
+  rule                Json
+  status              String                  @default("PENDING")
+  summary             Json?
+  checkedAt           DateTime?
+  createdAt           DateTime                @default(now())
+  datasetId           String
+  dataset             DashboardDataset        @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  versionId           String
+  version             DashboardDatasetVersion @relation(fields: [versionId, datasetId], references: [id, datasetId], onDelete: Cascade)
+  qualityIssueRecords DashboardQualityIssue[]
+
+  @@unique([id, workspaceId])
+  @@index([datasetId])
+  @@index([workspaceId, datasetId])
+}
+
+model DashboardQualityIssue {
+  id          String                @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  code        String
+  severity    String
+  field       String?
+  rowNumber   Int?
+  details     Json
+  resolvedAt  DateTime?
+  createdAt   DateTime              @default(now())
+  checkId     String
+  check       DashboardQualityCheck @relation(fields: [checkId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([id, workspaceId])
+  @@index([checkId])
+}
+
+model DashboardBusinessEntity {
+  id                                      String                      @id @default(cuid())
+  workspaceId                             String
+  workspace                               DashboardWorkspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  key                                     String
+  fields                                  Json
+  confirmedAt                             DateTime?
+  createdAt                               DateTime                    @default(now())
+  datasetId                               String
+  dataset                                 DashboardDataset            @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  dataRelationshipRelationshipFromRecords DashboardDataRelationship[] @relation("RelationshipFrom")
+  dataRelationshipRelationshipToRecords   DashboardDataRelationship[] @relation("RelationshipTo")
+
+  @@unique([workspaceId, datasetId, key])
+  @@unique([id, workspaceId])
+  @@index([datasetId])
+}
+
+model DashboardDataRelationship {
+  updatedAt DateTime @default(now()) @updatedAt
+  id            String                  @id @default(cuid())
+  workspaceId   String
+  workspace     DashboardWorkspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name          String
+  cardinality   String
+  fieldMappings Json
+  confirmedAt   DateTime?
+  createdAt     DateTime                @default(now())
+  fromEntityId  String
+  fromEntity    DashboardBusinessEntity @relation("RelationshipFrom", fields: [fromEntityId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  toEntityId    String
+  toEntity      DashboardBusinessEntity @relation("RelationshipTo", fields: [toEntityId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([id, workspaceId])
+  @@index([fromEntityId])
+  @@index([toEntityId])
+}
+
+model DashboardMetricComponent {
+  id          String                    @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  key         String
+  kind        String
+  definition  Json
+  createdAt   DateTime                  @default(now())
+  metricId    String
+  metric      DashboardMetricDefinition @relation(fields: [metricId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([metricId, key])
+  @@unique([id, workspaceId])
+  @@index([metricId])
+}
+
+model DashboardMetricResult {
+  id           String                    @id @default(cuid())
+  workspaceId  String
+  workspace    DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  value        Decimal?                  @db.Decimal(30, 10)
+  status       String                    @default("PENDING")
+  lineage      Json
+  periodStart  DateTime
+  periodEnd    DateTime
+  calculatedAt DateTime?
+  createdAt    DateTime                  @default(now())
+  datasetId    String
+  dataset      DashboardDataset          @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  versionId    String
+  version      DashboardDatasetVersion   @relation(fields: [versionId, datasetId], references: [id, datasetId], onDelete: Cascade)
+  metricId     String
+  metric       DashboardMetricDefinition @relation(fields: [metricId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([metricId, versionId, periodStart, periodEnd])
+  @@unique([id, workspaceId])
+  @@index([datasetId])
+  @@index([workspaceId, datasetId])
+  @@index([metricId])
+}
+
+model DashboardPage {
+  id            String             @id @default(cuid())
+  workspaceId   String
+  workspace     DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name          String
+  position      Int
+  layout        Json
+  createdAt     DateTime           @default(now())
+  viewId        String
+  view          DashboardView      @relation(fields: [viewId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  widgetRecords DashboardWidget[]
+
+  @@unique([viewId, position])
+  @@unique([id, workspaceId])
+  @@index([viewId])
+}
+
+model DashboardWidget {
+  id          String                     @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  kind        String
+  position    Int
+  definition  Json
+  createdAt   DateTime                   @default(now())
+  pageId      String
+  page        DashboardPage              @relation(fields: [pageId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  metricId    String?
+  metric      DashboardMetricDefinition? @relation(fields: [metricId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
+
+  @@unique([pageId, position])
+  @@unique([id, workspaceId])
+  @@index([pageId])
+  @@index([metricId])
+}
+
+model DashboardSavedView {
+  id          String             @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  filters     Json
+  layout      Json
+  userId      String
+  user        DashboardUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime           @default(now())
+  viewId      String
+  view        DashboardView      @relation(fields: [viewId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([id, workspaceId])
+  @@index([viewId])
+}
+
+model DashboardTarget {
+  direction String?
+  pacing String @default("NONE")
+  id               String                    @id @default(cuid())
+  workspaceId      String
+  workspace        DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name             String
+  value            Decimal                   @db.Decimal(30, 10)
+  periodStart      DateTime
+  periodEnd        DateTime
+  createdAt        DateTime                  @default(now())
+  metricId         String
+  metric           DashboardMetricDefinition @relation(fields: [metricId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  datasetId        String?
+  dataset          DashboardDataset? @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: NoAction)
+  currency         String? @db.Char(3)
+  definitionVersion String?
+  alertRuleRecords DashboardAlertRule[]
+
+  @@unique([id, workspaceId])
+  @@index([metricId])
+  @@index([datasetId])
+}
+
+model DashboardAlertRule {
+  id                String                    @id @default(cuid())
+  workspaceId       String
+  workspace         DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name              String
+  condition         Json
+  enabled           Boolean                   @default(false)
+  createdAt         DateTime                  @default(now())
+  metricId          String
+  metric            DashboardMetricDefinition @relation(fields: [metricId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  targetId          String?
+  target            DashboardTarget?          @relation(fields: [targetId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
+  alertEventRecords DashboardAlertEvent[]
+
+  @@unique([id, workspaceId])
+  @@index([metricId])
+  @@index([targetId])
+}
+
+model DashboardAlertEvent {
+  id             String             @id @default(cuid())
+  workspaceId    String
+  workspace      DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  eventKey       String
+  status         String             @default("OPEN")
+  observedValue  Decimal            @db.Decimal(30, 10)
+  occurredAt     DateTime           @default(now())
+  acknowledgedAt DateTime?
+  createdAt      DateTime           @default(now())
+  ruleId         String
+  rule           DashboardAlertRule @relation(fields: [ruleId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([ruleId, eventKey])
+  @@unique([id, workspaceId])
+  @@index([ruleId])
+}
+
+model DashboardRefreshExecution {
+  id          String                @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  status      String                @default("PENDING")
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  summary     Json?
+  createdAt   DateTime              @default(now())
+  sourceId    String
+  source      DashboardDataSource   @relation(fields: [sourceId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  jobId       String?
+  job         DashboardJob?         @relation(fields: [jobId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
+  scheduleId  String?
+  schedule    DashboardJobSchedule? @relation(fields: [scheduleId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, createdAt])
+  @@index([sourceId])
+  @@index([jobId])
+  @@index([scheduleId])
+}
+
+model DashboardReportDefinition {
+  id                    String                    @id @default(cuid())
+  workspaceId           String
+  workspace             DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name                  String
+  format                String
+  definition            Json
+  updatedAt             DateTime                  @updatedAt
+  createdAt             DateTime                  @default(now())
+  viewId                String?
+  view                  DashboardView?            @relation(fields: [viewId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
+  reportScheduleRecords DashboardReportSchedule[]
+  reportExportRecords   DashboardReportExport[]
+
+  @@unique([id, workspaceId])
+  @@index([viewId])
+}
+
+model DashboardReportSchedule {
+  id                    String                    @id @default(cuid())
+  workspaceId           String
+  workspace             DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  intervalSeconds       Int
+  nextRunAt             DateTime
+  enabled               Boolean                   @default(false)
+  recipients            Json
+  createdAt             DateTime                  @default(now())
+  reportId              String
+  report                DashboardReportDefinition @relation(fields: [reportId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  reportDeliveryRecords DashboardReportDelivery[]
+  lastErrorCode         String?
+
+  @@unique([id, workspaceId])
+  @@index([enabled, nextRunAt])
+  @@index([reportId])
+}
+
+model DashboardReportExport {
+  format String @default("CSV")
+  sourceViewId String?
+  sourceView DashboardView? @relation("ReportSourceView", fields: [sourceViewId, workspaceId], references: [id, workspaceId], onDelete: NoAction)
+  @@index([sourceViewId])
+  id                    String                    @id @default(cuid())
+  workspaceId           String
+  workspace             DashboardWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  status                String                    @default("PENDING")
+  storageKey            String?
+  checksum              String?
+  fileSize              BigInt?
+  completedAt           DateTime?
+  expiresAt             DateTime?
+  createdAt             DateTime                  @default(now())
+  reportId              String
+  report                DashboardReportDefinition @relation(fields: [reportId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  reportDeliveryRecords DashboardReportDelivery[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, expiresAt])
+  @@index([reportId])
+}
+
+model DashboardReportDelivery {
+  id             String                   @id @default(cuid())
+  workspaceId    String
+  workspace      DashboardWorkspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  destination    String
+  status         String                   @default("PENDING")
+  idempotencyKey String
+  attempts       Int                      @default(0)
+  availableAt    DateTime                 @default(now())
+  deliveredAt    DateTime?
+  lastErrorCode  String?
+  createdAt      DateTime                 @default(now())
+  exportId       String
+  export         DashboardReportExport    @relation(fields: [exportId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  scheduleId     String?
+  schedule       DashboardReportSchedule? @relation(fields: [scheduleId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
+
+  @@unique([workspaceId, idempotencyKey])
+  @@unique([id, workspaceId])
+  @@index([status, availableAt])
+  @@index([exportId])
+  @@index([scheduleId])
+}
+
+model DashboardShare {
+  kind DashboardShareKind @default(LINK)
+  id                 String                 @id @default(cuid())
+  workspaceId        String
+  workspace          DashboardWorkspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tokenHash          String                 @unique
+  permission         String                 @default("VIEW")
+  expiresAt          DateTime
+  revokedAt          DateTime?
+  createdAt          DateTime               @default(now())
+  viewId             String
+  view               DashboardView          @relation(fields: [viewId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  accessGrantRecords DashboardAccessGrant[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, expiresAt])
+  @@index([viewId])
+}
+
+model DashboardAccessGrant {
+  membershipId String?
+  membership DashboardMembership? @relation(fields: [membershipId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  id          String             @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        DashboardUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission  String
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime           @default(now())
+  shareId     String
+  share       DashboardShare     @relation(fields: [shareId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([shareId, userId])
+  @@unique([id, workspaceId])
+  @@index([shareId])
+}
+
+model DashboardAuditEvent {
+  id           String             @id @default(cuid())
+  workspaceId  String
+  workspace    DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actorIssuer  String
+  actorSubject String
+  action       String
+  resourceType String
+  resourceId   String
+  details      Json?
+  createdAt    DateTime           @default(now())
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, createdAt])
+}
+
+model DashboardBillingPlan {
+  id            String                  @id @default(cuid())
+  code          String                  @unique
+  name          String
+  entitlements  Json
+  active        Boolean                 @default(false)
+  updatedAt     DateTime                @updatedAt
+  createdAt     DateTime                @default(now())
+  subscriptions DashboardSubscription[]
+  externalPriceId String? @unique
+  currency String? @db.Char(3)
+  amountMinor Int?
+  billingInterval String?
+  checkoutAttempts DashboardCheckoutAttempt[]
+}
+
+model DashboardBillingCustomer {
+  id                 String             @id @default(cuid())
+  workspaceId        String
+  workspace          DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  provider           String
+  externalCustomerId String
+  createdAt          DateTime           @default(now())
+  invoiceRecords     DashboardInvoice[]
+  binding DashboardBillingBinding?
+
+  @@unique([provider, externalCustomerId])
+  @@unique([workspaceId, provider])
+  @@unique([id, workspaceId])
+}
+
+model DashboardInvoice {
+  id                String                   @id @default(cuid())
+  workspaceId       String
+  workspace         DashboardWorkspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  provider          String
+  externalInvoiceId String
+  currency          String                   @db.Char(3)
+  amount            Decimal                  @db.Decimal(20, 6)
+  status            String
+  periodStart       DateTime
+  periodEnd         DateTime
+  paidAt            DateTime?
+  createdAt         DateTime                 @default(now())
+  subscriptionId    String
+  subscription      DashboardSubscription    @relation(fields: [subscriptionId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  customerId        String
+  customer          DashboardBillingCustomer @relation(fields: [customerId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([provider, externalInvoiceId])
+  @@unique([id, workspaceId])
+  @@index([subscriptionId])
+  @@index([customerId])
+}
+
+model DashboardConnectorConfiguration {
+  activeRefreshJobId String?
+  activeRefreshLeaseToken String?
+  oauthAttemptId String?
+  refreshNotBefore DateTime?
+  id                         String                         @id @default(cuid())
+  workspaceId                String
+  workspace                  DashboardWorkspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  provider                   String
+  configuration              Json
+  scopes                     String[]
+  cursor                     Json?
+  enabled                    Boolean                        @default(false)
+  updatedAt                  DateTime                       @updatedAt
+  createdAt                  DateTime                       @default(now())
+  sourceId                   String
+  source                     DashboardDataSource            @relation(fields: [sourceId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  credentialReferenceRecords DashboardCredentialReference[]
+  oauthAttempts DashboardConnectorOAuthAttempt[]
+  webhookRecordRecords       DashboardWebhookRecord[]
+
+  @@unique([sourceId])
+  @@unique([id, workspaceId])
+  @@index([sourceId])
+}
+
+model DashboardCredentialReference {
+  id              String                          @id @default(cuid())
+  workspaceId     String
+  workspace       DashboardWorkspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  purpose         String
+  secretReference String
+  encryptedValue String?
+  keyVersion      String
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime                        @default(now())
+  connectorId     String
+  connector       DashboardConnectorConfiguration @relation(fields: [connectorId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([connectorId, purpose])
+  @@unique([id, workspaceId])
+  @@index([connectorId])
+}
+
+model DashboardWebhookRecord {
+  datasetId String?
+  versionId String?
+  jobId String?
+  sequence BigInt?
+  connectorRevision DateTime?
+  dataset DashboardDataset? @relation(fields:[datasetId,workspaceId],references:[id,workspaceId],onDelete:Cascade)
+  version DashboardDatasetVersion? @relation(fields:[versionId,datasetId],references:[id,datasetId],onDelete:Cascade)
+  job DashboardJob? @relation(fields:[jobId,workspaceId],references:[id,workspaceId],onDelete:NoAction)
+
+  id              String                          @id @default(cuid())
+  workspaceId     String
+  workspace       DashboardWorkspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  externalEventId String
+  payloadDigest   String
+  status          String                          @default("RECEIVED")
+  processedAt     DateTime?
+  lastErrorCode   String?
+  createdAt       DateTime                        @default(now())
+  connectorId     String
+  connector       DashboardConnectorConfiguration @relation(fields: [connectorId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+
+  @@unique([connectorId, externalEventId])
+  @@unique([versionId])
+  @@unique([jobId])
+  @@unique([id, workspaceId])
+  @@index([status, createdAt])
+  @@index([connectorId])
+}
+
+model DashboardOperationalEvent {
+  id          String             @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  kind        String
+  severity    String
+  details     Json
+  createdAt   DateTime           @default(now())
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, createdAt])
+}
+
+model DashboardSupportCase {
+  id          String             @id @default(cuid())
+  workspaceId String
+  workspace   DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  requesterId String
+  requester   DashboardUser      @relation(fields: [requesterId], references: [id], onDelete: Restrict)
+  subject     String
+  status      String             @default("OPEN")
+  details     Json
+  updatedAt   DateTime           @updatedAt
+  createdAt   DateTime           @default(now())
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, status, updatedAt])
+}
+
+model DashboardConfiguration {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model DashboardAnalysisRun {
+  id               String                  @id @default(cuid())
+  workspaceId      String
+  datasetId        String
+  versionId        String
+  semanticRevision Int
+  engineVersion    Int
+  sourceChecksum   String
+  status           String
+  result           Json
+  createdAt        DateTime                @default(now())
+  workspace        DashboardWorkspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  dataset          DashboardDataset        @relation(fields: [datasetId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  version          DashboardDatasetVersion @relation(fields: [versionId, datasetId], references: [id, datasetId], onDelete: Cascade)
+  views            DashboardView[]
+
+  @@unique([versionId, semanticRevision, engineVersion])
+  @@unique([id, datasetId, workspaceId])
+  @@index([workspaceId, datasetId, createdAt])
+}
+
+model DashboardConnectorOAuthAttempt {
+  id String @id
+  workspaceId String
+  workspace DashboardWorkspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  userId String
+  user DashboardUser @relation(fields:[userId],references:[id],onDelete:Cascade)
+  connectorId String
+  connector DashboardConnectorConfiguration @relation(fields:[connectorId,workspaceId],references:[id,workspaceId],onDelete:Cascade)
+  encryptedVerifier String
+  expiresAt DateTime
+  consumedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([connectorId,consumedAt])
+  @@index([expiresAt])
+}
+
+model DashboardStoragePolicy {
+ workspaceId String @id
+ workspace DashboardWorkspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ inactiveVersionDays Int?
+ archivedDatasetDays Int?
+ orphanGraceHours Int @default(168)
+ quarantineHours Int @default(24)
+ legalHold Boolean @default(false)
+ updatedAt DateTime @updatedAt
+}
+model DashboardStorageDeletion {
+ id String @id @default(cuid())
+ workspaceId String
+ workspace DashboardWorkspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ storageKey String
+ fingerprint String
+ fileSize BigInt
+ reason String
+ status String @default("PLANNED")
+ entityKind String?
+ entityId String?
+ observedAt DateTime @default(now())
+ eligibleAfter DateTime
+ deletedAt DateTime?
+ attempts Int @default(0)
+ lastErrorCode String?
+ @@unique([workspaceId,storageKey])
+ @@index([workspaceId,status,eligibleAfter])
+}
+model DashboardStorageMaintenance {
+ id String @id
+ ownerToken String
+ expiresAt DateTime
+ startedAt DateTime @default(now())
+}
+
+model DashboardBillingBinding {
+  providerStatus String?
+  id String @id @default(cuid())
+  workspaceId String @unique
+  workspace DashboardWorkspace @relation(fields:[workspaceId], references:[id], onDelete:Cascade)
+  customerId String @unique
+  customer DashboardBillingCustomer @relation(fields:[customerId,workspaceId], references:[id,workspaceId], onDelete:Restrict)
+  @@unique([customerId,workspaceId])
+  externalSubscriptionId String @unique
+  cancelAtPeriodEnd Boolean @default(false)
+  reconciledAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model DashboardBillingEvent {
+  id String @id
+  type String
+  payloadDigest String
+  workspaceId String?
+  outcome String
+  createdAt DateTime @default(now())
+  @@index([workspaceId,createdAt])
+}
+
+model DashboardTeam {
+  id String @id @default(cuid())
+  workspaceId String
+  workspace DashboardWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members DashboardTeamMember[]
+  @@unique([id, workspaceId])
+  @@index([workspaceId, createdAt])
+}
+model DashboardTeamMember {
+  id String @id @default(cuid())
+  workspaceId String
+  teamId String
+  userId String
+  team DashboardTeam @relation(fields: [teamId, workspaceId], references: [id, workspaceId], onDelete: Cascade)
+  membership DashboardMembership @relation(fields: [userId, workspaceId], references: [userId, workspaceId], onDelete: Cascade)
+  @@unique([teamId, userId])
+  @@index([userId, workspaceId])
+}
+model DashboardOrganizationAuditEvent {
+  id String @id @default(cuid())
+  organizationId String
+  organization DashboardOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorIssuer String
+  actorSubject String
+  action String
+  resourceId String
+  createdAt DateTime @default(now())
+  @@index([organizationId, createdAt])
+}
+
+// Short-lived network budget counters. Never stores raw addresses, tokens, users or request bodies.
+model DashboardRequestBucket {
+  key         String   @id
+  windowStart DateTime
+  count       Int      @default(0)
+  expiresAt   DateTime
+
+  @@index([expiresAt])
+}
+
+model DashboardCheckoutAttempt {
+  id                String   @id @default(uuid())
+  workspaceId       String
+  workspace         DashboardWorkspace @relation(fields:[workspaceId], references:[id], onDelete:Cascade)
+  planId            String
+  plan              DashboardBillingPlan @relation(fields:[planId], references:[id], onDelete:Restrict)
+  activeKey         String?
+  status            String   @default("CREATING")
+  externalSessionId String?  @unique
+  request           Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  expiresAt         DateTime
+  @@unique([workspaceId, activeKey])
+  @@index([workspaceId, createdAt])
+}
+
+// Independent mutation evidence survives resource deletion; no cascading tenant/user FK.
+model DashboardMutationAudit {
+ id String @id @default(cuid())
+ workspaceId String?
+ organizationId String?
+ userId String?
+ actorUserId String?
+ actorIssuer String
+ actorSubject String
+ actorSource String
+ transactionId String
+ resourceType String
+ resourceId String
+ operation String
+ action String?
+ changedFields String[]
+ createdAt DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+ @@index([workspaceId,createdAt,id])
+ @@index([organizationId,createdAt,id])
+ @@index([userId,createdAt,id])
+ @@index([transactionId])
+ @@index([createdAt,id])
+}
+
+
+model DashboardQueryCache {
+ id String @id
+ workspaceId String
+ viewId String
+ scopeHash String
+ payload String
+ signature String
+ createdAt DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+ expiresAt DateTime
+ workspace DashboardWorkspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ view DashboardView @relation(fields:[viewId,workspaceId],references:[id,workspaceId],onDelete:Cascade)
+ @@index([workspaceId,viewId,scopeHash])
+ @@index([expiresAt])
+ @@index([createdAt])
+}
+
+model DashboardAccountErasure {
+ id String @id @default(uuid())
+ userId String?
+ receiptHash String
+ decision Json
+ status String @default("PENDING")
+ leaseToken String?
+ leaseExpiresAt DateTime?
+ availableAt DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+ attempts Int @default(0)
+ deletedObjects Int @default(0)
+ errorCode String?
+ completedAt DateTime?
+ createdAt DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+ updatedAt DateTime @updatedAt
+ @@index([status,availableAt,leaseExpiresAt])
+ @@index([userId])
+}
+
+model DashboardSourceMonitoringPolicy {
+  id String @id @default(cuid())
+  workspaceId String
+  sourceId String
+  maxAgeMinutes Int?
+  notifyFailures Boolean @default(true)
+  notifyMetricFailures Boolean @default(true)
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  workspace DashboardWorkspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  source DashboardDataSource @relation(fields:[sourceId,workspaceId],references:[id,workspaceId],onDelete:Cascade)
+  @@unique([sourceId,workspaceId])
+}
+
+model DashboardSourceIncident {
+  id String @id @default(cuid())
+  workspaceId String
+  sourceId String
+  kind String
+  status String @default("OPEN")
+  code String
+  generation Int @default(1)
+  occurredAt DateTime @default(now())
+  observedAt DateTime @default(now())
+  acknowledgedAt DateTime?
+  resolvedAt DateTime?
+  workspace DashboardWorkspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  source DashboardDataSource @relation(fields:[sourceId,workspaceId],references:[id,workspaceId],onDelete:Cascade)
+  @@unique([sourceId,workspaceId,kind])
+  @@index([workspaceId,status,occurredAt])
+}
+
+// Anonymous, bounded operational aggregates. Never source values or identity records.
+model DashboardObservationBucket {
+  window DateTime
+  kind String
+  name String
+  outcome String
+  count Int @default(0)
+  totalMs Float @default(0)
+  maxMs Float @default(0)
+  @@id([window,kind,name,outcome])
+  @@index([kind,window])
+}
+
+
+model DashboardCredentialToken {
+ id String @id @default(cuid())
+ userId String
+ kind String
+ tokenHash String @unique
+ expiresAt DateTime
+ consumedAt DateTime?
+ createdAt DateTime @default(now())
+ user DashboardUser @relation(fields:[userId],references:[id],onDelete:Cascade)
+ @@index([userId,kind,expiresAt])
+}

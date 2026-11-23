@@ -1,0 +1,7 @@
+ALTER TABLE "DashboardWebhookRecord" ADD COLUMN "datasetId" TEXT, ADD COLUMN "versionId" TEXT, ADD COLUMN "jobId" TEXT, ADD COLUMN "sequence" BIGINT, ADD COLUMN "connectorRevision" TIMESTAMP(3);
+ALTER TABLE "DashboardWebhookRecord" ADD CONSTRAINT "DashboardWebhookRecord_datasetId_workspaceId_fkey" FOREIGN KEY ("datasetId","workspaceId") REFERENCES "DashboardDataset"("id","workspaceId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DashboardWebhookRecord" ADD CONSTRAINT "DashboardWebhookRecord_versionId_datasetId_fkey" FOREIGN KEY ("versionId","datasetId") REFERENCES "DashboardDatasetVersion"("id","datasetId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DashboardWebhookRecord" ADD CONSTRAINT "DashboardWebhookRecord_jobId_workspaceId_fkey" FOREIGN KEY ("jobId","workspaceId") REFERENCES "DashboardJob"("id","workspaceId") ON DELETE NO ACTION ON UPDATE CASCADE;
+ALTER TABLE "DashboardWebhookRecord" ADD CONSTRAINT "DashboardWebhookRecord_binding_complete" CHECK (("datasetId" IS NULL AND "versionId" IS NULL AND "jobId" IS NULL AND "sequence" IS NULL AND "connectorRevision" IS NULL) OR ("datasetId" IS NOT NULL AND "versionId" IS NOT NULL AND "jobId" IS NOT NULL AND "sequence" IS NOT NULL AND "sequence" > 0 AND "connectorRevision" IS NOT NULL));
+CREATE UNIQUE INDEX "DashboardWebhookRecord_versionId_key" ON "DashboardWebhookRecord"("versionId");
+CREATE UNIQUE INDEX "DashboardWebhookRecord_jobId_key" ON "DashboardWebhookRecord"("jobId");

@@ -1,0 +1,26 @@
+# Dashboard-only developer identity. GitHub private forwarding supplies browser TLS.
+services:
+  dashboard-identity:
+    image: quay.io/keycloak/keycloak:26.8.1
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_HOSTNAME: ${DASHBOARD_DEV_IDENTITY_ORIGIN:?Codespace identity origin required}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ${DASHBOARD_DEV_REALM_DIR:?Generated realm import directory required}:/opt/keycloak/data/import:ro
+      - dashboard_identity_data:/opt/keycloak/data
+  dashboard-development-tls:
+    image: caddy:2.11.7-alpine
+    ports:
+      - "127.0.0.1:9443:9443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - dashboard_development_tls:/data
+    depends_on:
+      - dashboard-identity
+volumes:
+  dashboard_identity_data:
+  dashboard_development_tls:

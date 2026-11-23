@@ -1,0 +1,76 @@
+name: Independent Dashboard verification
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dashboard-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      dashboard-postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: dashboard
+          POSTGRES_PASSWORD: ci-dashboard-migrations-only
+          POSTGRES_DB: dashboard_test
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U dashboard -d dashboard_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DASHBOARD_DATABASE_URL: postgresql://dashboard_ci_runtime:ci-dashboard-runtime-only@127.0.0.1:5434/dashboard_test?schema=public
+      DASHBOARD_MIGRATION_DATABASE_URL: postgresql://dashboard:ci-dashboard-migrations-only@127.0.0.1:5434/dashboard_test?schema=public
+      CHECKPOINT_DISABLE: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked independent dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install PostgreSQL 17 recovery tools from the official repository
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl --fail --silent --show-error -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/dashboard-pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+          echo 'DASHBOARD_PG_BIN=/usr/lib/postgresql/17/bin' >> "$GITHUB_ENV"
+      - name: Install the locked Playwright Chromium browser and native dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Run combined independent development acceptance
+        run: npm run verify:development-infrastructure -- --existing-test-database
+      - name: Retain verification results on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-verification-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .local/development-acceptance/**/summary.json
+            .local/development-acceptance/**/*.log
+            .local/verification/**/summary.json
+            .local/verification/**/*.log
+            .local/verification/**/junit.xml
+            .local/verification/**/dependency-audit.json
+            .local/verification/**/database-recovery.json
+            .local/verification/**/*accessibility.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

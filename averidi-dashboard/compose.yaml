@@ -1,0 +1,19 @@
+# Standalone development services. No website or Analyst containers, volumes or database.
+services:
+  dashboard-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: dashboard
+      POSTGRES_PASSWORD: ${DASHBOARD_DEV_DB_PASSWORD:-local-dashboard-only}
+      POSTGRES_DB: dashboard_dev
+    ports:
+      - "127.0.0.1:${DASHBOARD_DEV_DB_PORT:-5434}:5432"
+    volumes:
+      - dashboard_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dashboard -d dashboard_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  dashboard_pgdata:

@@ -1,0 +1,9 @@
+const donutPalette=['#2777ec','#25b9aa','#f4a442','#8a6fe2','#ef7894','#5ba7dc'];
+export default function CategoryDonut({points,formatValue}:{points:{label:string;value:number|null;missing:boolean}[];formatValue:(value:number)=>string}){
+ const valid=points.filter((p):p is typeof p & {value:number}=>p.value!==null&&Number.isFinite(p.value)&&p.value>=0);
+ const total=valid.reduce((sum,p)=>sum+p.value,0);
+ if(valid.length!==points.length||total<=0)return <p>Category shares are unavailable for non-positive or incomplete sales amounts. Review the values in the table.</p>;
+ let cumulative=0;
+ const stops=valid.map((p,index)=>{const start=cumulative;cumulative+=p.value/total*100;return `${donutPalette[index%donutPalette.length]} ${start}% ${cumulative}%`;});
+ return <div style={{display:'flex',gap:9,alignItems:'center',flexWrap:'wrap'}}><div role="img" aria-label="Sales share by category" style={{width:135,height:135,borderRadius:'50%',background:`conic-gradient(${stops.join(',')})`,display:'grid',placeItems:'center',flexShrink:0}}><div style={{width:78,height:78,borderRadius:'50%',background:'#fff',display:'flex',justifyContent:'center',alignItems:'center',flexDirection:'column'}}><strong style={{fontSize:13,color:'#10254a'}}>{formatValue(total)}</strong><span style={{fontSize:11,color:'#516681'}}>Total Sales</span></div></div><ul style={{listStyle:'none',padding:0,margin:0,display:'grid',gap:7}}>{valid.map((p,index)=><li key={p.label} style={{display:'flex',alignItems:'center',gap:8,fontSize:12}}><span aria-hidden="true" style={{height:10,width:10,borderRadius:3,background:donutPalette[index%donutPalette.length]}}/><span>{p.missing?'Missing':p.label}<small style={{display:'block',color:'#526681'}}>{formatValue(p.value)} · {(p.value/total*100).toFixed(1)}%</small></span></li>)}</ul></div>;
+}

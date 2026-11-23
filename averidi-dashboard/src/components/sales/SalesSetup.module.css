@@ -1,0 +1,22 @@
+.setup { font-family:system-ui,sans-serif; }
+.setup > section, .setup > details, .setup > [role="alert"] { margin-top:16px; }
+.setup label { display:block; }
+.setup label > select, .setup label > input { display:block; width:min(100%,650px); margin-top:6px; }
+.setup table { width:100%; text-align:left; }
+.setup th, .setup td { padding:10px 14px; border-bottom:1px solid #e5ebf1; }
+.setup th { font-weight:600; }
+.setup td { text-align:right; font-variant-numeric:tabular-nums; }
+.setup [aria-label="Selected file preview"] td { text-align:left; white-space:nowrap; }
+.setup [aria-current="step"] { font-weight:700; color:#174f76; }
+.setup summary { cursor:pointer; font-weight:600; }
+.setup button + button, .setup button + a { margin-left:8px; }
+@media(max-width:600px) {
+ .setup th, .setup td { padding:9px 6px; }
+ .setup button { max-width:100%; white-space:normal; }
+ .setup button + button, .setup button + a { margin-left:0; margin-top:8px; }
+}
+
+.setup input, .setup select { box-sizing:border-box; max-width:100%; min-height:44px; }
+.setup button { min-height:44px; }
+.setup summary { min-height:44px; padding:6px 0; box-sizing:border-box; }
+.setup select { display:block; width:min(100%,650px); margin-top:6px; }

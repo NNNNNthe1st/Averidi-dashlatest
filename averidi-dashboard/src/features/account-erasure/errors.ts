@@ -1,0 +1,2 @@
+const admissionCodes=['ACCOUNT_ERASING','WORKSPACE_ERASING','ACCOUNT_ERASURE_BUSY','ERASURE_OWNERSHIP_CHANGED'] as const;
+export function erasureAdmissionCode(error:unknown){const message=error instanceof Error?error.message:'',meta=error&&typeof error==='object'&&'meta' in error?JSON.stringify(error.meta):'';return admissionCodes.find(code=>new RegExp('\\b'+code+'\\b').test(message+' '+(meta??'')))??null;}

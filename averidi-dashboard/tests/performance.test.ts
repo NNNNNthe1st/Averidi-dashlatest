@@ -1,0 +1,23 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {performance} from 'node:perf_hooks';
+import {prepareDashboardFile,DASHBOARD_MAX_ROWS} from '../src/engines/ingestion/ingest';
+import {analysisConfirmationSchema,analyzeDashboardData,retainedTextFields} from '../src/engines/analysis/pipeline';
+import {generateDashboardConfig,addDashboardWidget} from '../src/engines/generation/dashboard-templates';
+import {buildDashboardWidgets} from '../src/engines/visualization/widgets';
+test('maximum supported dataset stays accurate through ingestion, metrics, filtering and grouped chart preparation within the development budget',async()=>{
+ const confirmation=analysisConfirmationSchema.parse({confirmedMappings:[{sourceField:'id',canonicalConcept:'ORDER'},{sourceField:'amount',canonicalConcept:'REVENUE'},{sourceField:'cost',canonicalConcept:'COST'},{sourceField:'channel',canonicalConcept:'CHANNEL'}],metricRules:{versionId:'performance_v1',grain:'ORDER',currency:'USD',currencyMode:'SINGLE',revenueBasis:'NET',costBasis:'COGS',refundsIncluded:true,discountsIncluded:true,taxIncluded:false,shippingIncluded:false,cancellationTreatment:'ALREADY_EXCLUDED',returnTreatment:'ALREADY_NETTED'}});
+ const csv='id,amount,cost,channel\n'+Array.from({length:DASHBOARD_MAX_ROWS},(_,i)=>`${String(i).padStart(8,'0')},100,40,C${i%10}`).join('\n');
+ const start=performance.now(),memory=process.memoryUsage().heapUsed;
+ const prepared=await prepareDashboardFile({bytes:Buffer.from(csv),fileName:'performance.csv',preserveTextFields:retainedTextFields(confirmation)});
+ assert.equal(prepared.rows.length,DASHBOARD_MAX_ROWS);assert.equal(prepared.rows[0].id,'00000000');
+ const analysis=analyzeDashboardData(prepared,'performance_v1',confirmation);assert.equal(analysis.quality.status,'PASS');
+ const values=Object.fromEntries(analysis.outcomes.map(v=>[v.key,v.value]));assert.equal(values.REVENUE,DASHBOARD_MAX_ROWS*100);assert.equal(values.PROFIT,DASHBOARD_MAX_ROWS*60);assert.equal(values.ORDERS,DASHBOARD_MAX_ROWS);
+ const filtered=analyzeDashboardData(prepared,'performance_v1',confirmation,{filters:[{type:'CATEGORY',field:'channel',value:'C3'}],compare:false});assert.equal(filtered.outcomes.find(v=>v.key==='REVENUE')?.value,DASHBOARD_MAX_ROWS*10);
+ const config=addDashboardWidget(generateDashboardConfig('SALES',analysis.outcomes),'REVENUE','BAR','channel',analysis.outcomes,['channel']);
+ const result=buildDashboardWidgets(config,prepared,'performance_v1',confirmation,{filters:[],compare:false});assert.equal(result.widgets.at(-1)?.series.length,10);
+ const elapsedMs=Math.round(performance.now()-start),heapGrowthBytes=process.memoryUsage().heapUsed-memory;
+ console.log(JSON.stringify({benchmark:'maximum-supported-dataset',rows:DASHBOARD_MAX_ROWS,elapsedMs,heapGrowthBytes}));
+ assert.ok(elapsedMs<30000,`Maximum supported dataset exceeded the 30-second development budget: ${elapsedMs}ms`);
+ assert.ok(heapGrowthBytes<512*1024*1024,'Pipeline heap growth exceeded the 512 MiB development budget');
+});

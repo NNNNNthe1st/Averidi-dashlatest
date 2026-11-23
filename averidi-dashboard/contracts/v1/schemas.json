@@ -1,0 +1,1377 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dashboard v1 wire contract definitions",
+  "version": "1.0",
+  "$defs": {
+    "ExternalIdentity": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "maxLength": 2048,
+          "format": "uri"
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "required": [
+        "issuer",
+        "subject"
+      ],
+      "additionalProperties": false
+    },
+    "AdminAccess": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "type": "object",
+          "properties": {
+            "issuer": {
+              "type": "string",
+              "maxLength": 2048,
+              "format": "uri"
+            },
+            "subject": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
+          },
+          "required": [
+            "issuer",
+            "subject"
+          ],
+          "additionalProperties": false
+        },
+        "permissions": {
+          "minItems": 1,
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "dashboard:read",
+              "dashboard:manage"
+            ]
+          }
+        }
+      },
+      "required": [
+        "actor",
+        "permissions"
+      ],
+      "additionalProperties": false
+    },
+    "AdminBridgeClaims": {
+      "type": "object",
+      "properties": {
+        "iss": {
+          "type": "string",
+          "maxLength": 2048,
+          "format": "uri"
+        },
+        "sub": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "aud": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "iat": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "exp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "jti": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128
+        },
+        "token_use": {
+          "type": "string",
+          "const": "access"
+        },
+        "integration": {
+          "type": "string",
+          "const": "averidi-dashboard-admin-v1"
+        },
+        "dashboard_permissions": {
+          "minItems": 1,
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "dashboard:read",
+              "dashboard:manage"
+            ]
+          }
+        },
+        "nbf": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "iss",
+        "sub",
+        "aud",
+        "iat",
+        "exp",
+        "jti",
+        "token_use",
+        "integration",
+        "dashboard_permissions"
+      ],
+      "additionalProperties": false
+    },
+    "EcosystemAccessClaims": {
+      "type": "object",
+      "properties": {
+        "iss": {
+          "type": "string",
+          "maxLength": 2048,
+          "format": "uri"
+        },
+        "sub": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "aud": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "iat": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "exp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "jti": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128
+        },
+        "token_use": {
+          "type": "string",
+          "const": "access"
+        },
+        "integration": {
+          "type": "string",
+          "const": "averidi-dashboard-ecosystem-v1"
+        },
+        "dashboard_permissions": {
+          "minItems": 1,
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "dashboard:subscription:read",
+              "dashboard:navigation:read"
+            ]
+          }
+        },
+        "workspace_ids": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        },
+        "nbf": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "iss",
+        "sub",
+        "aud",
+        "iat",
+        "exp",
+        "jti",
+        "token_use",
+        "integration",
+        "dashboard_permissions",
+        "workspace_ids"
+      ],
+      "additionalProperties": false
+    },
+    "SubscriptionSummary": {
+      "type": "object",
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "product": {
+          "type": "string",
+          "const": "averidi-dashboard"
+        },
+        "workspaceId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "subscription": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean"
+            },
+            "planCode": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "checkedAt": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            }
+          },
+          "required": [
+            "active",
+            "planCode",
+            "checkedAt"
+          ],
+          "additionalProperties": false
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "PAST_DUE",
+            "CANCELED",
+            "INACTIVE"
+          ]
+        },
+        "currentPeriodEnd": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "contractVersion",
+        "product",
+        "workspaceId",
+        "subscription",
+        "status",
+        "currentPeriodEnd"
+      ],
+      "additionalProperties": false
+    },
+    "Navigation": {
+      "type": "object",
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "product": {
+          "type": "string",
+          "const": "averidi-dashboard"
+        },
+        "workspaceId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "links": {
+          "type": "object",
+          "properties": {
+            "workspaces": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^\\/dashboard\\/app\\/(?:workspaces(?:\\/[A-Za-z0-9_-]{1,128}\\/(?:studio|members))?|api\\/auth\\/login)$"
+            },
+            "studio": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^\\/dashboard\\/app\\/(?:workspaces(?:\\/[A-Za-z0-9_-]{1,128}\\/(?:studio|members))?|api\\/auth\\/login)$"
+            },
+            "members": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^\\/dashboard\\/app\\/(?:workspaces(?:\\/[A-Za-z0-9_-]{1,128}\\/(?:studio|members))?|api\\/auth\\/login)$"
+            },
+            "login": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^\\/dashboard\\/app\\/(?:workspaces(?:\\/[A-Za-z0-9_-]{1,128}\\/(?:studio|members))?|api\\/auth\\/login)$"
+            }
+          },
+          "required": [
+            "workspaces",
+            "studio",
+            "login"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "contractVersion",
+        "product",
+        "workspaceId",
+        "links"
+      ],
+      "additionalProperties": false
+    },
+    "DashboardEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "contractVersion": {
+              "type": "string",
+              "const": "1.0"
+            },
+            "product": {
+              "type": "string",
+              "const": "averidi-dashboard"
+            },
+            "eventId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "workspaceId": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            "occurredAt": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            },
+            "type": {
+              "type": "string",
+              "const": "dashboard.subscription.changed.v1"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "summary": {
+                  "type": "object",
+                  "properties": {
+                    "contractVersion": {
+                      "type": "string",
+                      "const": "1.0"
+                    },
+                    "product": {
+                      "type": "string",
+                      "const": "averidi-dashboard"
+                    },
+                    "workspaceId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                    },
+                    "subscription": {
+                      "type": "object",
+                      "properties": {
+                        "active": {
+                          "type": "boolean"
+                        },
+                        "planCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "checkedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        }
+                      },
+                      "required": [
+                        "active",
+                        "planCode",
+                        "checkedAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVE",
+                        "PAST_DUE",
+                        "CANCELED",
+                        "INACTIVE"
+                      ]
+                    },
+                    "currentPeriodEnd": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "product",
+                    "workspaceId",
+                    "subscription",
+                    "status",
+                    "currentPeriodEnd"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "summary"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "contractVersion",
+            "product",
+            "eventId",
+            "workspaceId",
+            "occurredAt",
+            "type",
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "contractVersion": {
+              "type": "string",
+              "const": "1.0"
+            },
+            "product": {
+              "type": "string",
+              "const": "averidi-dashboard"
+            },
+            "eventId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "workspaceId": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            "occurredAt": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            },
+            "type": {
+              "type": "string",
+              "const": "dashboard.workspace.changed.v1"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "contractVersion",
+            "product",
+            "eventId",
+            "workspaceId",
+            "occurredAt",
+            "type",
+            "data"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SignedEventClaims": {
+      "type": "object",
+      "properties": {
+        "iss": {
+          "type": "string",
+          "maxLength": 2048,
+          "format": "uri"
+        },
+        "sub": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "aud": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "iat": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "exp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "jti": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128
+        },
+        "integration": {
+          "type": "string",
+          "const": "averidi-dashboard-events-v1"
+        },
+        "event": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "contractVersion": {
+                  "type": "string",
+                  "const": "1.0"
+                },
+                "product": {
+                  "type": "string",
+                  "const": "averidi-dashboard"
+                },
+                "eventId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "workspaceId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "type": {
+                  "type": "string",
+                  "const": "dashboard.subscription.changed.v1"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "contractVersion": {
+                          "type": "string",
+                          "const": "1.0"
+                        },
+                        "product": {
+                          "type": "string",
+                          "const": "averidi-dashboard"
+                        },
+                        "workspaceId": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                        },
+                        "subscription": {
+                          "type": "object",
+                          "properties": {
+                            "active": {
+                              "type": "boolean"
+                            },
+                            "planCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "checkedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            }
+                          },
+                          "required": [
+                            "active",
+                            "planCode",
+                            "checkedAt"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ACTIVE",
+                            "PAST_DUE",
+                            "CANCELED",
+                            "INACTIVE"
+                          ]
+                        },
+                        "currentPeriodEnd": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "contractVersion",
+                        "product",
+                        "workspaceId",
+                        "subscription",
+                        "status",
+                        "currentPeriodEnd"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "summary"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "contractVersion",
+                "product",
+                "eventId",
+                "workspaceId",
+                "occurredAt",
+                "type",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "contractVersion": {
+                  "type": "string",
+                  "const": "1.0"
+                },
+                "product": {
+                  "type": "string",
+                  "const": "averidi-dashboard"
+                },
+                "eventId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "workspaceId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "type": {
+                  "type": "string",
+                  "const": "dashboard.workspace.changed.v1"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 120
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "contractVersion",
+                "product",
+                "eventId",
+                "workspaceId",
+                "occurredAt",
+                "type",
+                "data"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "nbf": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "iss",
+        "sub",
+        "aud",
+        "iat",
+        "exp",
+        "jti",
+        "integration",
+        "event"
+      ],
+      "additionalProperties": false
+    },
+    "ContractError": {
+      "type": "object",
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "error": {
+          "type": "string",
+          "enum": [
+            "INTEGRATIONS_INACTIVE",
+            "UNAUTHORIZED",
+            "FORBIDDEN",
+            "INVALID_CONTRACT_REQUEST",
+            "INVALID_CONTRACT_RESPONSE",
+            "DASHBOARD_NOT_RELEASED",
+            "INTEGRATION_UNAVAILABLE"
+          ]
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "contractVersion",
+        "error",
+        "requestId"
+      ],
+      "additionalProperties": false
+    },
+    "PlanChange": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "entitlements": {
+          "type": "object",
+          "properties": {
+            "dashboardAccess": {
+              "type": "boolean"
+            },
+            "quotas": {
+              "type": "object",
+              "properties": {
+                "seats": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "datasets": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "dashboards": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "connectors": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reports": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "schedules": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "customMetrics": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "relationships": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "alerts": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "targets": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "teams": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "customRoles": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "shares": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "storedBytes": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "dashboardAccess"
+          ],
+          "additionalProperties": false
+        },
+        "externalPriceId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^price_[a-zA-Z0-9]{1,100}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "USD",
+                "EUR",
+                "GBP",
+                "JPY",
+                "CAD",
+                "AUD",
+                "CHF",
+                "NZD",
+                "SGD",
+                "HKD",
+                "AED",
+                "SAR",
+                "INR",
+                "KWD",
+                "BHD"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "amountMinor": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2147483647
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "billingInterval": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "month",
+                "year"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "name",
+        "active",
+        "entitlements",
+        "externalPriceId",
+        "currency",
+        "amountMinor",
+        "billingInterval"
+      ],
+      "additionalProperties": false
+    },
+    "BillingBinding": {
+      "type": "object",
+      "properties": {
+        "externalCustomerId": {
+          "type": "string",
+          "pattern": "^cus_[a-zA-Z0-9]{1,100}$"
+        },
+        "externalSubscriptionId": {
+          "type": "string",
+          "pattern": "^sub_[a-zA-Z0-9]{1,100}$"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "externalCustomerId",
+        "externalSubscriptionId",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "CheckoutRecovery": {
+      "type": "object",
+      "properties": {
+        "attemptId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "sessionId": {
+          "type": "string",
+          "pattern": "^cs_(test|live)_[A-Za-z0-9]{1,200}$"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "attemptId",
+        "sessionId",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "AccessHold": {
+      "type": "object",
+      "properties": {
+        "accessSuspended": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "accessSuspended",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "WorkspaceRename": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "SubscriptionChange": {
+      "type": "object",
+      "properties": {
+        "planCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "PAST_DUE",
+            "CANCELED",
+            "INACTIVE"
+          ]
+        },
+        "currentPeriodEnd": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "planCode",
+        "status",
+        "currentPeriodEnd"
+      ],
+      "additionalProperties": false
+    },
+    "SupportUpdate": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "OPEN",
+            "IN_PROGRESS",
+            "RESOLVED",
+            "CLOSED"
+          ]
+        },
+        "expectedUpdatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "status",
+        "expectedUpdatedAt",
+        "note"
+      ],
+      "additionalProperties": false
+    },
+    "AccountErasureRecovery": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "const": "RECONCILE_BILLING"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "action",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "ConfigurationChange": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "const": "SUPPORT_CASE_CREATION_ENABLED"
+            },
+            "value": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 500
+            },
+            "expectedUpdatedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "key",
+            "value",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "const": "SUPPORT_MAX_OPEN_CASES_PER_USER"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 500
+            },
+            "expectedUpdatedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "key",
+            "value",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "enum": [
+                "WORKSPACE_CREATION_ENABLED",
+                "ORGANIZATION_CREATION_ENABLED",
+                "WORKSPACE_INVITATIONS_ENABLED",
+                "ORGANIZATION_INVITATIONS_ENABLED",
+                "SHARE_LINK_CREATION_ENABLED",
+                "SCHEDULE_CREATION_ENABLED"
+              ]
+            },
+            "value": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 500
+            },
+            "expectedUpdatedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "key",
+            "value",
+            "reason",
+            "expectedUpdatedAt"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

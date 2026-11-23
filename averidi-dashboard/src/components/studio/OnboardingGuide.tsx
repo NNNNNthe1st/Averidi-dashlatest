@@ -1,0 +1,22 @@
+'use client';
+import Link from 'next/link';
+import {useWorkspaceRole,useWorkspacePermission} from '../workspace/WorkspacePermissions';
+import {onboardingProgress,type OnboardingDataset,type OnboardingAnalysis} from '../../features/onboarding/progress';
+export default function OnboardingGuide({dataset,analysis,views,loading,error,workspaceId}:{dataset:OnboardingDataset|undefined;analysis:OnboardingAnalysis;views:{datasetId:string;analysisId?:string|null}[];loading:boolean;error:boolean;workspaceId:string}){
+ const canMonitor=useWorkspacePermission('monitoring.read'),canReadData=useWorkspacePermission('datasets.read');
+ const canEdit=useWorkspaceRole()!=='VIEWER';
+ const steps=onboardingProgress(dataset,analysis,views);
+ const next=steps.find(step=>!step.done);
+ const journey=[
+  {label:"Add your data",done:steps[1].done,target:steps[1].target,instruction:steps[1].instruction},
+  {label:"Prepare available metrics",done:steps[2].done&&steps[3].done&&steps[4].done,target:next&&[2,3,4].some(i=>steps[i]===next)?next.target:"calculate-metrics",instruction:next&&[2,3,4].some(i=>steps[i]===next)?next.instruction:"Your source is ready for analysis."},
+  {label:"Create your chosen dashboard",done:steps[5].done,target:steps[5].target,instruction:steps[5].instruction},
+ ];
+ const nextJourney=journey.find(stage=>!stage.done);
+ function open(target:string){const element=document.getElementById(target);if(element?.tagName==='DETAILS')(element as HTMLDetailsElement).open=true;element?.focus();}
+ return <section aria-label="Getting started" style={{border:'1px solid #ccd4de',borderRadius:10,padding:16,marginTop:20}}><h2>Getting started</h2><p>Follow these steps to build your dashboard. We’ll explain anything that needs your attention.</p>
+  {loading?<p role="status">Checking saved progress…</p>:error?<p role="alert">Progress is unavailable until workspace data loads successfully.</p>:<>{!canEdit&&next?<p>A workspace owner or editor can finish setup. Your current role provides read access.</p>:null}<p role="status">{journey.filter(step=>step.done).length} of {journey.length} steps complete.{!next?' Your current dashboard is ready.':null}</p><ol>{journey.map(step=><li key={step.label}><span aria-label={step.done?'Complete':'Not complete'}>{step.done?'☑':'☐'}</span> {step.label}{step===nextJourney&&canEdit?<> — {step.instruction} <a href={'#'+step.target} onClick={()=>open(step.target)}>Continue</a></>:null}</li>)}</ol></>}
+  <p>{canEdit?<><Link href={'/workspaces/'+encodeURIComponent(workspaceId)+'/connectors'}>Connect a data source</Link> · </>:null}<Link href={'/workspaces/'+encodeURIComponent(workspaceId)+'/jobs'}>Check progress</Link></p>
+  <details><summary>Understand targets, freshness and updates</summary><h3>Targets and alerts</h3><p>Targets are goals you choose for a period, source dataset, currency and governed metric definition. Alert rules compare eligible current calculations with an explicit threshold or a matching target. Met or not met describes the evaluated result; it does not predict future performance.</p>{canMonitor?<p><Link href={'/workspaces/'+encodeURIComponent(workspaceId)+'/monitoring'}>Review targets, alert rules and notifications</Link></p>:null}<h3>What the timestamps mean</h3><p>Source processed at records when Dashboard profiled its stored source version. Metrics calculated at records the governed analysis run. Neither timestamp proves that an external provider has supplied every expected record.</p><h3>After a source update</h3><ol><li>Upload a replacement, append identified records, synchronize an explicitly complete snapshot, or refresh your connected source.</li><li>Check the background job. A failed update does not turn an incomplete version into ready data.</li><li>Review and confirm the new version's field meanings and business rules, then calculate metrics.</li><li>Create a compatible dashboard or use its refresh control when current calculations are available. Save widget and layout edits using their Save controls.</li></ol><p>Use latest calculated data updates the dashboard from ready calculations; it does not itself fetch a provider's latest records. A changed version or confirmation invalidates older calculations until reviewed again.</p>{canReadData?<p><Link href={'/workspaces/'+encodeURIComponent(workspaceId)+'/data'}>Review data versions and quality</Link></p>:null}<p><Link href="/demo">Explore the fictional sample</Link> to try filters, comparisons, formulas and source records before uploading a file.</p></details>
+ </section>;
+}

@@ -1,0 +1,14 @@
+# Example only: independent Dashboard ingress. No existing website routing is changed.
+# Bind the Dashboard web process to loopback and block any alternate direct access.
+# Set DASHBOARD_RATE_LIMIT_TRUST_PROXY=true and
+# DASHBOARD_RATE_LIMIT_IP_HEADER=x-dashboard-client-ip only with this boundary in place.
+# remote_host uses the actual peer; no client-supplied forwarded address is trusted.
+dashboard.example.invalid {
+    @dashboard path /dashboard/app /dashboard/app/*
+    handle @dashboard {
+        reverse_proxy 127.0.0.1:3000 {
+            header_up X-Dashboard-Client-IP {remote_host}
+        }
+    }
+    respond 404
+}

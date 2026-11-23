@@ -1,0 +1,4 @@
+import {billingAdmin,billingBody,billingJson,billingError} from '../../../../../../features/billing/http';
+import {accountErasureRecoverySchema} from '../../../../../../contracts/administration';
+import {reconcileErasureBilling} from '../../../../../../features/account-erasure/administration';
+export async function POST(request:Request,context:{params:Promise<{requestId:string}>}){try{const actor=await billingAdmin(request,true),body=accountErasureRecoverySchema.safeParse(await billingBody(request));if(!body.success)return billingJson({error:'INVALID_ERASURE_REQUEST'},422);return billingJson(await reconcileErasureBilling((await context.params).requestId,actor,body.data.reason));}catch(e){if(e instanceof Error&&['ERASURE_PROCESSING','ERASURE_SCOPE_CHANGED'].includes(e.message))return billingJson({error:e.message},409);return billingError(e);}}

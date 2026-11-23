@@ -1,0 +1,16 @@
+{
+  "port": 3000,
+  "readyTimeoutSeconds": 60,
+  "stopTimeoutSeconds": 45,
+  "env": {
+    "DASHBOARD_DATABASE_URL": "postgresql://dashboard_runtime:REPLACE@127.0.0.1:5432/dashboard_stage?schema=public",
+    "DASHBOARD_STORAGE_BACKEND": "local",
+    "DASHBOARD_STORAGE_ROOT": "/var/lib/averidi-dashboard-data",
+    "DASHBOARD_RELEASE_MODE": "OFF",
+    "DASHBOARD_EXTERNAL_INTEGRATIONS_ENABLED": "false",
+    "DASHBOARD_ADMIN_BRIDGE_ENABLED": "false",
+    "DASHBOARD_BILLING_ENABLED": "false",
+    "DASHBOARD_BILLING_SELF_SERVICE_ENABLED": "false",
+    "DASHBOARD_DATA_CONNECTORS_ENABLED": "false"
+  }
+}

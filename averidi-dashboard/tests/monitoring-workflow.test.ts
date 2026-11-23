@@ -1,0 +1,52 @@
+import {test,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {dashboardDb as db} from '../src/server/db';
+import {governedWorkspace} from './fixtures/governed-workspace';
+import {saveTarget,removeTarget,saveAlert,listMonitoring,evaluateAlert,acknowledgeAlert} from '../src/features/monitoring/service';
+import {targetSchema,alertSchema} from '../src/features/monitoring/contracts';
+import {runDashboardWorkerOnce} from '../src/worker/run-once';
+import {confirmWorkspaceDatasetMetricRules} from '../src/features/datasets/service';
+after(()=>db.$disconnect());
+test('monitoring authoring refuses ambiguous thresholds and invalid calendar periods',()=>{
+ assert.equal(targetSchema.safeParse({name:'Goal',datasetId:'dataset',metricKey:'REVENUE',value:20,start:'2026-02-30',through:'2026-03-01'}).success,false);
+ assert.equal(alertSchema.safeParse({name:'Alert',metricKey:'REVENUE',datasetId:'dataset',operator:'GT',threshold:20,targetId:'target'}).success,false);
+});
+test('targets, alert edits, deduplicated inbox events and automatic evaluation use real confirmed analysis',async()=>{
+ const f=await governedWorkspace();try{
+  const input={name:'Revenue target',datasetId:f.dataset.id,metricKey:'REVENUE',value:250,start:'2026-01-01',through:'2026-01-02'},target=await saveTarget(f.actor,f.workspace.id,input);
+  assert.equal(target.datasetId,f.dataset.id);assert.equal(target.currency,'USD');assert.ok(target.definitionVersion);
+  const foreignDataset=await db.dashboardDataset.create({data:{workspaceId:f.foreign.id,name:'Foreign target dataset'}});
+  await assert.rejects(db.dashboardTarget.update({where:{id:target.id},data:{datasetId:foreignDataset.id}}));
+  await assert.rejects(saveTarget(f.reader,f.workspace.id,input),/FORBIDDEN/);
+  const ruleInput={name:'Revenue above target',metricKey:'REVENUE',datasetId:f.dataset.id,operator:'GT',targetId:target.id,enabled:true},rule=await saveAlert(f.actor,f.workspace.id,ruleInput);
+  await assert.rejects(saveAlert(f.reader,f.workspace.id,ruleInput),/FORBIDDEN/);await assert.rejects(saveAlert(f.actor,f.foreign.id,ruleInput),/DATASET_UNAVAILABLE/);
+  await assert.rejects(removeTarget(f.actor,f.workspace.id,{id:target.id,expectedRevision:target.revision}),/TARGET_IN_USE/);
+  await assert.rejects(saveTarget(f.actor,f.workspace.id,{...input,value:500},{id:target.id,expectedRevision:'0'.repeat(64)}),/VERSION_CONFLICT/);
+  await evaluateAlert(f.actor,f.workspace.id,rule.id,'first-evaluation');assert.equal((await runDashboardWorkerOnce()).status,'COMPLETED');
+  await evaluateAlert(f.actor,f.workspace.id,rule.id,'repeat-evaluation');assert.equal((await runDashboardWorkerOnce()).status,'COMPLETED');
+  let state=await listMonitoring(f.reader,f.workspace.id);assert.equal(state.events.length,1);assert.equal(state.events[0].observedValue,'300');
+  await assert.rejects(acknowledgeAlert(f.reader,f.workspace.id,state.events[0].id),/FORBIDDEN/);await acknowledgeAlert(f.actor,f.workspace.id,state.events[0].id);
+  assert.equal((await listMonitoring(f.actor,f.workspace.id)).events[0].status,'ACKNOWLEDGED');
+  const changed=await saveTarget(f.actor,f.workspace.id,{...input,value:400},{id:target.id,expectedRevision:target.revision});assert.equal(changed.value,'400');
+  await evaluateAlert(f.actor,f.workspace.id,rule.id,'below-target');assert.equal((await runDashboardWorkerOnce()).status,'COMPLETED');assert.equal((await listMonitoring(f.actor,f.workspace.id)).events.length,1);
+  const disabled=await saveAlert(f.actor,f.workspace.id,{...ruleInput,enabled:false},{id:rule.id,expectedRevision:rule.revision});await assert.rejects(evaluateAlert(f.actor,f.workspace.id,rule.id,'disabled-rule'),/ALERT_UNAVAILABLE/);
+  await assert.rejects(saveAlert(f.actor,f.workspace.id,ruleInput,{id:rule.id,expectedRevision:rule.revision}),/VERSION_CONFLICT/);
+  await saveAlert(f.actor,f.workspace.id,{...ruleInput,targetId:null,threshold:200},{id:rule.id,expectedRevision:disabled.revision});
+  await confirmWorkspaceDatasetMetricRules(f.actor,f.workspace.id,f.dataset.id,f.rules);
+  const revision=(await db.dashboardDatasetVersion.findUniqueOrThrow({where:{id:f.versionId}})).semanticRevision;
+  const analysis=await f.run('METRICS_CALCULATE',{datasetId:f.dataset.id,versionId:f.versionId,semanticRevision:revision});
+  assert.equal(await db.dashboardJob.count({where:{workspaceId:f.workspace.id,kind:'ALERTS_EVALUATE',status:'QUEUED',payload:{path:['analysisId'],equals:analysis.analysisId}}}),1);
+  assert.equal((await runDashboardWorkerOnce()).status,'COMPLETED');state=await listMonitoring(f.actor,f.workspace.id);assert.equal(state.events.length,2);assert.equal(state.events.filter(event=>event.status==='OPEN').length,1);
+  const other=await db.dashboardDataset.create({data:{workspaceId:f.workspace.id,name:'Unrelated dataset'}});
+  const currentRule=await db.dashboardAlertRule.findUniqueOrThrow({where:{id:rule.id}});
+  await db.dashboardAlertRule.update({where:{id:rule.id},data:{condition:{operator:'GT',threshold:200,datasetId:other.id}}});
+  await db.dashboardJob.create({data:{workspaceId:f.workspace.id,kind:'ALERTS_EVALUATE',payload:{ruleId:rule.id,analysisId:analysis.analysisId},idempotencyKey:'wrong-bound-dataset'}});
+  await assert.rejects(runDashboardWorkerOnce(),/ALERT_UNAVAILABLE/);
+  await db.dashboardAlertRule.update({where:{id:rule.id},data:{condition:currentRule.condition!}});
+  await confirmWorkspaceDatasetMetricRules(f.actor,f.workspace.id,f.dataset.id,{...f.rules,currency:'JPY'});
+  const currencyRevision=(await db.dashboardDatasetVersion.findUniqueOrThrow({where:{id:f.versionId}})).semanticRevision;
+  await f.run('METRICS_CALCULATE',{datasetId:f.dataset.id,versionId:f.versionId,semanticRevision:currencyRevision});
+  await assert.rejects(runDashboardWorkerOnce(),/METRIC_UNAVAILABLE/);
+  await assert.rejects(saveAlert(f.actor,f.workspace.id,ruleInput),/METRIC_UNAVAILABLE/);
+ }finally{await f.cleanup();}
+});

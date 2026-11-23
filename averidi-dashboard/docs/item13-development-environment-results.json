@@ -1,0 +1,354 @@
+{
+  "item": 13,
+  "scope": "Independent development implementation and native local acceptance; hosted/Docker acceptance is separate",
+  "completedAt": "2026-10-23T03:22:04.036Z",
+  "source": {
+    "algorithm": "sha256",
+    "sha256": "9e090c61b02f24c08f517eced56c1bc8cfe52dd666ffb577cfbcaac0fbbc1f7d",
+    "files": 310
+  },
+  "runtime": {
+    "node": "v22.23.4",
+    "postgresqlServer": "17.10",
+    "postgresqlClient": "17.11",
+    "chromium": "153.0.8010.0"
+  },
+  "combinedAcceptance": {
+    "version": 1,
+    "status": "PASSED",
+    "startedAt": "2026-10-23T03:20:38.919Z",
+    "provisioning": "existing-isolated-native-test-database",
+    "completeVerification": ".local/verification/2026-10-23T03-20-38.973Z-beaf8376-2084-4138-a150-a174e96817a3/summary.json",
+    "cleanup": "NOT_REQUIRED",
+    "source": {
+      "algorithm": "sha256",
+      "sha256": "9e090c61b02f24c08f517eced56c1bc8cfe52dd666ffb577cfbcaac0fbbc1f7d",
+      "files": 310
+    },
+    "stages": [
+      {
+        "id": "history",
+        "status": "PASSED"
+      },
+      {
+        "id": "isolation",
+        "status": "PASSED"
+      },
+      {
+        "id": "contracts",
+        "status": "PASSED"
+      },
+      {
+        "id": "schema",
+        "status": "PASSED"
+      },
+      {
+        "id": "generate",
+        "status": "PASSED"
+      },
+      {
+        "id": "migrations",
+        "status": "PASSED"
+      },
+      {
+        "id": "owner-database",
+        "status": "PASSED"
+      },
+      {
+        "id": "upgrade",
+        "status": "PASSED"
+      },
+      {
+        "id": "runtime-role",
+        "status": "PASSED"
+      },
+      {
+        "id": "runtime-grants",
+        "status": "PASSED"
+      },
+      {
+        "id": "runtime-database",
+        "status": "PASSED"
+      },
+      {
+        "id": "regression",
+        "status": "PASSED"
+      },
+      {
+        "id": "drift",
+        "status": "PASSED"
+      },
+      {
+        "id": "storage-probe",
+        "status": "PASSED"
+      },
+      {
+        "id": "database-recovery",
+        "status": "PASSED"
+      },
+      {
+        "id": "clean-build-output",
+        "status": "PASSED"
+      },
+      {
+        "id": "route-types",
+        "status": "PASSED"
+      },
+      {
+        "id": "typescript",
+        "status": "PASSED"
+      },
+      {
+        "id": "build",
+        "status": "PASSED"
+      },
+      {
+        "id": "authentication-browser",
+        "status": "PASSED"
+      },
+      {
+        "id": "bi-browser",
+        "status": "PASSED"
+      }
+    ],
+    "finishedAt": "2026-10-23T03:22:04.044Z"
+  },
+  "nativeSetupAndLaunch": {
+    "status": "PASSED",
+    "checks": {
+      "nativeSetup": true,
+      "repeatSetupPreservesSecrets": true,
+      "privatePermissions": true,
+      "migrations": 17,
+      "restrictedRole": true,
+      "liveDevelopmentWebWorkerReadiness": true,
+      "gracefulShutdown": true
+    }
+  },
+  "verification": {
+    "status": "PASSED",
+    "startedAt": "2026-10-23T03:20:38.974Z",
+    "finishedAt": "2026-10-23T03:22:04.036Z",
+    "stages": [
+      {
+        "id": "history",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:39.033Z",
+        "log": "history.log",
+        "elapsedMs": 110,
+        "exitCode": 0
+      },
+      {
+        "id": "isolation",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:39.145Z",
+        "log": "isolation.log",
+        "elapsedMs": 66,
+        "exitCode": 0
+      },
+      {
+        "id": "contracts",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:39.213Z",
+        "log": "contracts.log",
+        "elapsedMs": 370,
+        "exitCode": 0
+      },
+      {
+        "id": "schema",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:39.585Z",
+        "log": "schema.log",
+        "elapsedMs": 862,
+        "exitCode": 0
+      },
+      {
+        "id": "generate",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:40.448Z",
+        "log": "generate.log",
+        "elapsedMs": 1357,
+        "exitCode": 0
+      },
+      {
+        "id": "migrations",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:41.807Z",
+        "log": "migrations.log",
+        "elapsedMs": 929,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-database",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:42.737Z",
+        "log": "owner-database.log",
+        "elapsedMs": 264,
+        "exitCode": 0
+      },
+      {
+        "id": "upgrade",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:43.003Z",
+        "log": "upgrade.log",
+        "elapsedMs": 3270,
+        "exitCode": 0
+      },
+      {
+        "id": "runtime-role",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:46.274Z",
+        "log": "runtime-role.log",
+        "elapsedMs": 264,
+        "exitCode": 0
+      },
+      {
+        "id": "runtime-grants",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:46.539Z",
+        "log": "runtime-grants.log",
+        "elapsedMs": 351,
+        "exitCode": 0
+      },
+      {
+        "id": "runtime-database",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:46.892Z",
+        "log": "runtime-database.log",
+        "elapsedMs": 295,
+        "exitCode": 0
+      },
+      {
+        "id": "regression",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:20:47.188Z",
+        "log": "regression.log",
+        "elapsedMs": 34452,
+        "exitCode": 0,
+        "tests": {
+          "tests": 169,
+          "pass": 169,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "id": "drift",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:21.642Z",
+        "log": "drift.log",
+        "elapsedMs": 749,
+        "exitCode": 0
+      },
+      {
+        "id": "storage-probe",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:22.392Z",
+        "log": "storage-probe.log",
+        "elapsedMs": 193,
+        "exitCode": 0
+      },
+      {
+        "id": "database-recovery",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:22.585Z",
+        "log": "database-recovery.log",
+        "elapsedMs": 2129,
+        "exitCode": 0
+      },
+      {
+        "id": "clean-build-output",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:24.715Z",
+        "log": "clean-build-output.log",
+        "elapsedMs": 87,
+        "exitCode": 0
+      },
+      {
+        "id": "route-types",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:24.803Z",
+        "log": "route-types.log",
+        "elapsedMs": 262,
+        "exitCode": 0
+      },
+      {
+        "id": "typescript",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:25.065Z",
+        "log": "typescript.log",
+        "elapsedMs": 2127,
+        "exitCode": 0
+      },
+      {
+        "id": "build",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:27.193Z",
+        "log": "build.log",
+        "elapsedMs": 12903,
+        "exitCode": 0
+      },
+      {
+        "id": "authentication-browser",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:40.098Z",
+        "log": "authentication-browser.log",
+        "elapsedMs": 7304,
+        "exitCode": 0,
+        "tests": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "id": "bi-browser",
+        "status": "PASSED",
+        "startedAt": "2026-10-23T03:21:47.405Z",
+        "log": "bi-browser.log",
+        "elapsedMs": 16577,
+        "exitCode": 0,
+        "accessibilityScans": 3
+      }
+    ]
+  },
+  "recovery": {
+    "passed": true,
+    "tables": 61,
+    "fixtureDomains": 37,
+    "restrictedRoleRestoreRead": true
+  },
+  "accessibility": {
+    "scans": [
+      {
+        "phase": "empty-studio",
+        "violations": []
+      },
+      {
+        "phase": "populated-dashboard",
+        "violations": []
+      },
+      {
+        "phase": "mobile-dashboard",
+        "violations": []
+      }
+    ]
+  },
+  "performance": {
+    "benchmark": "maximum-supported-dataset",
+    "rows": 50000,
+    "elapsedMs": 374,
+    "heapGrowthBytes": 38729184
+  },
+  "executionBoundaries": {
+    "dockerRuntime": "NOT_EXECUTED_DOCKER_UNAVAILABLE",
+    "hostedAcceptance": "NOT_ACCEPTED",
+    "production": "NOT_ACCESSED",
+    "crossProductConnections": "INACTIVE"
+  }
+}

@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import type {Page} from 'playwright';
+export async function verifyWorkspacePresentation(page:Page,workspaceUrl:string,checkAccessibility:(page:Page,phase:string)=>Promise<void>){
+ async function save(currency:string,timezone:string,locale:string){await page.getByLabel('Primary business currency',{exact:true}).fill(currency);await page.getByLabel('Business reporting timezone',{exact:true}).fill(timezone);await page.getByLabel('Date and number locale',{exact:true}).fill(locale);await page.getByRole('button',{name:'Save reporting preferences',exact:true}).click();await page.getByText('Business currency, timezone and display format saved.',{exact:true}).waitFor();await page.getByRole('button',{name:'Save reporting preferences',exact:true}).waitFor({state:'visible'});}
+ await save('KES','Africa/Nairobi','en-GB');await page.reload();await page.getByRole('button',{name:'Save reporting preferences',exact:true}).waitFor();
+ await page.waitForFunction(()=>document.querySelector<HTMLInputElement>('input[aria-label="Primary business currency"]')?.value==='KES');
+ assert.equal(await page.getByLabel('Business reporting timezone',{exact:true}).inputValue(),'Africa/Nairobi');assert.equal(await page.getByLabel('Date and number locale',{exact:true}).inputValue(),'en-GB');await checkAccessibility(page,'workspace-reporting-preferences');
+ await page.goto(workspaceUrl+'/studio?create=1');const canvas=page.getByRole('region',{name:'Dashboard results',exact:true});await canvas.getByText('US$350.00',{exact:true}).first().waitFor();await page.getByText('Confirm business calculation rules',{exact:true}).click();assert.equal(await page.getByLabel('Three-letter currency code',{exact:true}).inputValue(),'USD');assert.equal(await page.getByLabel('Business timezone (required for dates)',{exact:true}).inputValue(),'America/New_York');
+ await page.getByText('Review suggested field meanings (not yet confirmed)',{exact:true}).click();await page.getByLabel('Meaning of channel',{exact:true}).selectOption('CUSTOMER_SEGMENT');assert.equal(await page.getByLabel('Meaning of channel',{exact:true}).inputValue(),'CUSTOMER_SEGMENT');await page.getByLabel('Meaning of channel',{exact:true}).selectOption('CHANNEL');
+ await page.goto(workspaceUrl+'/settings');await page.setViewportSize({width:390,height:844});await checkAccessibility(page,'workspace-reporting-preferences-mobile');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ // Preserve the original fixture's US formatting for subsequent independent acceptance flows.
+ await save('USD','America/New_York','en-US');await page.setViewportSize({width:1280,height:900});
+ console.log('PASS: owner reporting preferences, persistence, localized USD without currency conversion, unchanged saved dataset rules and desktop/mobile accessibility.');
+}

@@ -1,0 +1,72 @@
+/* Averidi Dashboard visual foundations. Scoped to the application, not the main website. */
+:root {
+  --av-ink:#172d45; --av-muted:#526779; --av-primary:#174f76;
+  --av-primary-hover:#103b59; --av-border:#ccd9e5; --av-surface:#ffffff;
+  --av-page:#f7f9fc; --av-focus:#177ca7; --av-radius:12px;
+}
+*, *::before, *::after { box-sizing:border-box; }
+body { margin:0; background:var(--av-page); color:var(--av-ink); line-height:1.5; -webkit-font-smoothing:antialiased; }
+main { min-width:0; }
+h1,h2,h3 { line-height:1.24; letter-spacing:-.015em; }
+h1 { font-size:clamp(1.65rem,2.8vw,2.4rem); }
+h2 { font-size:clamp(1.25rem,2vw,1.65rem); }
+a { color:var(--av-primary); text-underline-offset:3px; }
+button,input,select,textarea { font:inherit; }
+button,select { cursor:pointer; }
+button { min-height:40px; padding:9px 14px; border:1px solid var(--av-border); border-radius:10px; background:var(--av-surface); color:var(--av-ink); transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease; }
+button:not(:disabled):hover { background:#eaf3f9; border-color:#92b8d1; }
+button:disabled { cursor:not-allowed; opacity:.56; }
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea { max-width:100%; min-height:40px; border:1px solid var(--av-border); border-radius:9px; background:#fff; color:var(--av-ink); padding:8px 11px; }
+input[type=file] { max-width:100%; }
+input[type=checkbox],input[type=radio] { accent-color:var(--av-primary); }
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible { outline:3px solid var(--av-focus); outline-offset:3px; }
+label { line-height:1.5; }
+fieldset { border-color:var(--av-border); border-radius:var(--av-radius); }
+:where(section,article)[aria-label] { min-width:0; }
+table { border-collapse:collapse; }
+th,td { vertical-align:top; }
+[role=alert] { overflow-wrap:anywhere; }
+@media (prefers-reduced-motion:reduce) { button { transition:none; } }
+@media (max-width:680px) { body { font-size:15px; } main { max-width:100%; } }
+
+/* Reusable customer-facing surfaces; opt-in to avoid changing analytical widgets. */
+.av-page { width:min(100% - 32px,1100px); margin:0 auto; padding:clamp(24px,4vw,48px) 0; }
+.av-page-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; margin-bottom:28px; }
+.av-page-header h1 { margin:0 0 8px; }
+.av-page-header p { color:var(--av-muted); margin:0; }
+.av-card { min-width:0; padding:24px; background:var(--av-surface); border:1px solid var(--av-border); border-radius:var(--av-radius); box-shadow:0 5px 20px rgba(16,44,72,.045); }
+.av-card h2 { margin-top:0; }
+.av-card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr)); gap:16px; }
+.av-button-primary { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 18px; background:var(--av-primary); color:#fff; font-weight:700; border-radius:10px; border:1px solid var(--av-primary); text-decoration:none; }
+.av-button-primary:hover { background:var(--av-primary-hover); color:#fff; }
+.av-button-secondary { display:inline-flex; align-items:center; min-height:40px; padding:8px 12px; border:1px solid var(--av-border); border-radius:10px; background:#fff; text-decoration:none; font-weight:600; }
+.av-muted { color:var(--av-muted); }
+.av-form { display:grid; gap:16px; }
+.av-form label { display:grid; gap:6px; font-weight:600; }
+.av-form input:not([type=checkbox]):not([type=radio]) { width:100%; }
+.av-auth { width:min(100% - 32px,480px); margin:clamp(32px,8vh,80px) auto; }
+.av-auth .av-card { padding:clamp(20px,4vw,32px); }
+.av-auth h1 { margin-top:0; }
+@media (max-width:680px) {
+ .av-page-header { align-items:stretch; }
+ .av-page-header .av-button-primary { width:100%; }
+ .av-card { padding:18px; }
+}
+
+/* UI-7: responsive dashboard controls and readable dense results. */
+.av-studio-tabs { display:flex; flex-wrap:wrap; gap:10px; margin:24px 0 20px; }
+.av-studio-tabs > button { flex:0 1 auto; min-height:44px; }
+.av-studio-header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; }
+.av-studio-header > button { min-height:44px; }
+@media (max-width:700px) {
+ .av-studio-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+ .av-studio-tabs > button { width:100%; padding:12px 8px!important; font-size:14px; white-space:normal; }
+ .av-studio-header { align-items:stretch; }
+ .av-studio-header > div { flex:1 1 100%; }
+ .av-studio-header > button { width:100%; }
+ .av-studio-setup { padding:14px!important; }
+ .av-studio-setup > section { padding:14px!important; }
+ .av-dashboard-results { min-width:0; max-width:100%; }
+ .av-dashboard-results table { display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+ .av-dashboard-results input, .av-dashboard-results select { max-width:100%; }
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "date": "2026-10-26",
+  "requirements": [100, 143, 149, 151, 181],
+  "baseline": "340cd170bd34d1bc7c4e2dd74bfc440e1dae15a3",
+  "finalSource": {"algorithm": "sha256", "sha256": "6cac9404b0166f7c46921ad388b564ec696eb00c8272f43cd8f65f27de821c63", "files": 597},
+  "regression": {"tests": 374, "passed": 374, "failed": 0, "skipped": 0},
+  "finalFocused": {"tests": 44, "passed": 44, "failed": 0, "skipped": 0},
+  "finalTypeScript": "PASSED",
+  "finalBuild": "PASSED",
+  "fullBiBrowser": "PASSED",
+  "biAccessibility": {"scans": 65, "violations": 0},
+  "independentBillingAccessibility": {"scans": 5, "violations": 0},
+  "databaseRecovery": {"tables": 72, "fixtureDomains": 40, "restrictedRoleRestoreRead": true},
+  "dependencyScan": "PASSED",
+  "validationSequence": "Comprehensive gate passed 374 regressions and all pre-BI stages, then found pacing-select overflow. UI bound fix received a successful build and full BI browser run. Two final pure calculation refinements received 44 passing native focused regressions, TypeScript and an exact final build. Final UI is unchanged from the passing browser build. The earlier failed gate was not relabeled.",
+  "originalTextSha256": "398e39929ebeee3d492ceedd577177d7e1b5d469577206002fd3890339e06c8d",
+  "productionAccessed": false,
+  "deployed": false,
+  "mainMerged": false
+}

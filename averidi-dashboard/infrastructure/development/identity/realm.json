@@ -1,0 +1,25 @@
+{
+  "realm": "dashboard-development",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "clients": [{
+    "clientId": "averidi-dashboard-development",
+    "enabled": true,
+    "publicClient": true,
+    "standardFlowEnabled": true,
+    "directAccessGrantsEnabled": false,
+    "redirectUris": ["https://localhost:8443/dashboard/app/api/auth/callback"],
+    "webOrigins": ["https://localhost:8443"],
+    "attributes": {"pkce.code.challenge.method": "S256"}
+  }],
+  "users": [{
+    "username": "dashboard-developer",
+    "enabled": true,
+    "emailVerified": true,
+    "firstName": "Dashboard",
+    "lastName": "Developer",
+    "credentials": [{"type": "password", "value": "dashboard-local-only", "temporary": false}]
+  }]
+}

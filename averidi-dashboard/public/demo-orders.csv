@@ -1,0 +1,9 @@
+order_id,customer_id,product,day,channel,amount,cost,quantity
+DEMO-001,DEMO-C01,Sample item A,2026-01-05,Web,100,40,1
+DEMO-002,DEMO-C02,Sample item B,2026-01-12,Web,200,80,2
+DEMO-003,DEMO-C01,Sample item A,2026-01-18,Shop,150,60,1
+DEMO-004,DEMO-C03,Sample item B,2026-01-25,Partner,250,100,2
+DEMO-005,DEMO-C01,Sample item A,2026-02-05,Web,180,72,1
+DEMO-006,DEMO-C02,Sample item B,2026-02-12,Web,220,88,2
+DEMO-007,DEMO-C04,Sample item A,2026-02-18,Shop,200,80,1
+DEMO-008,DEMO-C03,Sample item B,2026-02-25,Partner,300,120,2

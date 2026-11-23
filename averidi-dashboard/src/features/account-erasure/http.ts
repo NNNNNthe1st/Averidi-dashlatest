@@ -1,0 +1,4 @@
+import {NextResponse} from 'next/server';
+export const erasureHeaders={'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'};
+export function erasureHttpError(error:unknown){const code=error instanceof Error?error.message:'';const status=code==='UNAUTHORIZED'||code==='ERASURE_RECEIPT_INVALID'?401:code==='FORBIDDEN'?403:['INVALID_ERASURE_REQUEST','INVALID_QUERY'].includes(code)?422:['ERASURE_REVIEW_CHANGED','ERASURE_BLOCKED','ACCOUNT_ERASING','WORKSPACE_ERASING','ACCOUNT_ERASURE_BUSY'].includes(code)?409:['ERASURE_DISABLED','ERASURE_NOT_CONFIGURED'].includes(code)?503:503;return NextResponse.json({error:status===503?'ACCOUNT_ERASURE_UNAVAILABLE':code},{status,headers:erasureHeaders});}
+export function receiptToken(request:Request){const token=/^Erasure ([a-f0-9]{64})$/.exec(request.headers.get('authorization')??'')?.[1];if(!token)throw Error('ERASURE_RECEIPT_INVALID');return token;}

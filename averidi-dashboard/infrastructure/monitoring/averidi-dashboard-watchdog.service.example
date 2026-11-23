@@ -1,0 +1,19 @@
+[Unit]
+Description=Independent Dashboard monitor watchdog (install on a separate host)
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=averidi-dashboard-watchdog
+WorkingDirectory=/opt/averidi-dashboard
+EnvironmentFile=/etc/averidi-dashboard/watchdog.env
+ExecStart=/usr/bin/node scripts/monitoring/watchdog.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/averidi-dashboard-watchdog
+[Install]
+WantedBy=multi-user.target

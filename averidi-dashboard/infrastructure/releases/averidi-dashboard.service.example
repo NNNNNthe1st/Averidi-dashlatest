@@ -1,0 +1,26 @@
+# Example only. No service is installed or started by the release tooling.
+[Unit]
+Description=Independent Averidi Dashboard release supervisor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dashboard
+Group=dashboard
+WorkingDirectory=/opt/averidi-dashboard-tools
+ExecStart=/usr/bin/node /opt/averidi-dashboard-tools/scripts/dashboard-release.mjs serve /var/lib/averidi-dashboard-host
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=1500
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/averidi-dashboard-host /var/lib/averidi-dashboard-data
+
+[Install]
+WantedBy=multi-user.target

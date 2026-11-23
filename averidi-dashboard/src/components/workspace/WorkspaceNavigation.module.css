@@ -1,0 +1,24 @@
+.navigation { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 20px; border-bottom:1px solid #ccd4de; }
+.navigation a { text-decoration:none; }
+.navigation a:focus-visible, .navigation summary:focus-visible { outline:3px solid #174f76; outline-offset:3px; }
+.navigation a:hover { text-decoration:underline; }
+.navigation details { max-width:100%; }
+.navigation summary { cursor:pointer; padding:9px; }
+.panel { display:flex; flex-direction:column; gap:9px; padding:12px; border:1px solid #ccd4de; border-radius:8px; background:var(--background,#fff); min-width:180px; max-width:min(320px,90vw); }
+@media (max-width:680px) {
+  .navigation { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:10px; }
+  .navigation > a, .navigation > details { min-width:0; width:100%; box-sizing:border-box; }
+  .navigation > a { padding:11px 8px; }
+  .navigation > details { grid-column:1 / -1; }
+  .panel { box-sizing:border-box; width:100%; max-width:100%; }
+}
+
+/* Compact, reachable mobile navigation without horizontal scrolling. */
+@media (max-width:680px) {
+ .navigation { gap:8px; align-items:stretch; }
+ .navigation > a { display:flex!important; align-items:center; justify-content:center; min-height:44px; padding:10px 8px!important; border:1px solid #dbe5ed; border-radius:10px; background:#fff; text-align:center; font-weight:600; }
+ .navigation > details { border:1px solid #dbe5ed; border-radius:10px; background:#fff; }
+ .navigation > details > summary { min-height:44px; padding:12px; font-weight:600; }
+ .panel { min-width:0; border:0; border-top:1px solid #dbe5ed; border-radius:0 0 10px 10px; box-shadow:none; }
+ .panel a { display:block; padding:10px 8px; min-height:44px; }
+}
