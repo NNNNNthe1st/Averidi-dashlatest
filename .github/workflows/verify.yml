@@ -59,7 +59,7 @@ jobs:
         run: npm run verify:development-infrastructure -- --existing-test-database
       - name: Retain verification results on success or failure
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dashboard-verification-${{ github.sha }}-${{ github.run_attempt }}
           path: |
