@@ -33,7 +33,7 @@ jobs:
           tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/dashboard-release.tar.gz" dashboard-release
           sha256sum "$RUNNER_TEMP/dashboard-release.tar.gz" > "$RUNNER_TEMP/dashboard-release-archive.sha256"
           node --input-type=module -e 'import {readFileSync,writeFileSync} from "node:fs";import {createHash} from "node:crypto";const raw=readFileSync(process.env.RUNNER_TEMP+"/dashboard-release/release.json");writeFileSync(process.env.RUNNER_TEMP+"/dashboard-release-digest.txt",createHash("sha256").update(raw).digest("hex")+"\n");'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: independent-dashboard-${{ github.sha }}-${{ github.run_attempt }}
           path: |
